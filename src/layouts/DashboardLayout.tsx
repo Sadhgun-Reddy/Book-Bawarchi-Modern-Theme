@@ -146,7 +146,7 @@ const DashboardLayout: React.FC<LayoutProps> = ({ children }) => {
         </header>
 
         {/* Page Content (Dashboard, Profile, etc.) */}
-        <div className="flex flex-1 flex-col p-6 lg:p-10 max-w-[1600px] mx-auto w-full pb-12">
+        <div className="flex flex-1 flex-col p-6 lg:p-10   mx-auto w-full pb-12">
           {children || <Outlet />}
 
           {/* Footer */}

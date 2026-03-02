@@ -1,5 +1,5 @@
-import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAppSelector } from '../hooks/redux';
 import {
   PlusCircle,
   Search,
@@ -16,6 +16,7 @@ import {
   Plus,
   CheckCircle,
   RefreshCw,
+  Info,
 } from 'lucide-react';
 
 // TYPES
@@ -168,6 +169,7 @@ const MOCK_DATA: DashboardMockData = {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAppSelector((state) => state.auth);
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in">
@@ -175,8 +177,8 @@ const Dashboard: React.FC = () => {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
           <h1 className="text-3xl font-bold tracking-tight text-[#1b160d] lg:text-4xl">
-            Welcome back, Rahul! <br />
-            <span className="text-stone-400 font-medium">Here's what's cooking today.</span>
+            Welcome back, {user?.name?.split(' ')[0] || 'User'}! <br />
+            <span className="text-stone-400 font-medium text-lg">Here's what's cooking today.</span>
           </h1>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -202,30 +204,36 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {MOCK_DATA.stats.map((stat) => (
-          <div
-            key={stat.id}
-            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-100 transition-all hover:-translate-y-1 hover:shadow-lg"
-          >
-            <div className="flex items-start justify-between">
-              <div className="rounded-full bg-orange-50 p-3 text-[#ef9d2a] transition-transform group-hover:scale-110">
-                <stat.icon className="w-6 h-6" />
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 text-stone-400">
+          <Info size={14} />
+          <span className="text-xs font-bold uppercase tracking-wider">Metrics (Static API)</span>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {MOCK_DATA.stats.map((stat) => (
+            <div
+              key={stat.id}
+              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-100 transition-all hover:-translate-y-1 hover:shadow-lg"
+            >
+              <div className="flex items-start justify-between">
+                <div className="rounded-full bg-orange-50 p-3 text-[#ef9d2a] transition-transform group-hover:scale-110">
+                  <stat.icon className="w-6 h-6" />
+                </div>
+                {stat.badge && (
+                  <span
+                    className={`flex items-center text-xs font-bold px-2 py-1 rounded-full ${stat.badgeColor}`}
+                  >
+                    {stat.badge}
+                  </span>
+                )}
               </div>
-              {stat.badge && (
-                <span
-                  className={`flex items-center text-xs font-bold px-2 py-1 rounded-full ${stat.badgeColor}`}
-                >
-                  {stat.badge}
-                </span>
-              )}
+              <div className="mt-4">
+                <h3 className="text-3xl font-bold text-[#1b160d]">{stat.value}</h3>
+                <p className="text-sm font-medium text-stone-500">{stat.title}</p>
+              </div>
             </div>
-            <div className="mt-4">
-              <h3 className="text-3xl font-bold text-[#1b160d]">{stat.value}</h3>
-              <p className="text-sm font-medium text-stone-500">{stat.title}</p>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Main Grid Widgets */}
@@ -233,7 +241,10 @@ const Dashboard: React.FC = () => {
         {/* Recent Enquiries */}
         <div className="flex flex-col rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-100">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#1b160d]">Recent Enquiries</h2>
+            <div className="flex flex-col">
+              <h2 className="text-lg font-bold text-[#1b160d]">Recent Enquiries</h2>
+              <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">(Static API)</span>
+            </div>
             <Link
               to="/dashboard/enquiries"
               className="text-sm font-bold text-[#ef9d2a] hover:text-orange-600 transition-colors"
@@ -269,7 +280,10 @@ const Dashboard: React.FC = () => {
         {/* Food Requests / Admin Notes */}
         <div className="flex flex-col rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-100">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#1b160d]">Latest Food Requests</h2>
+            <div className="flex flex-col">
+              <h2 className="text-lg font-bold text-[#1b160d]">Latest Food Requests</h2>
+              <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">(Static API)</span>
+            </div>
             <button className="text-stone-400 hover:text-[#ef9d2a] transition-colors">
               <RefreshCw className="w-5 h-5" />
             </button>
@@ -303,7 +317,10 @@ const Dashboard: React.FC = () => {
         {/* Saved Caterers */}
         <div className="flex flex-col rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-100">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#1b160d]">Saved Caterers</h2>
+            <div className="flex flex-col">
+              <h2 className="text-lg font-bold text-[#1b160d]">Saved Caterers</h2>
+              <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">(Static API)</span>
+            </div>
             <Link
               to="/dashboard/saved"
               className="text-sm font-bold text-[#ef9d2a] hover:text-orange-600 transition-colors"
@@ -343,7 +360,10 @@ const Dashboard: React.FC = () => {
         {/* Support Tickets */}
         <div className="flex flex-col rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-100">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#1b160d]">Support Tickets</h2>
+            <div className="flex flex-col">
+              <h2 className="text-lg font-bold text-[#1b160d]">Support Tickets</h2>
+              <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">(Static API)</span>
+            </div>
             <button className="flex items-center gap-1 text-sm font-bold text-[#ef9d2a] hover:text-orange-600 transition-colors">
               <Plus className="w-4 h-4" />
               New

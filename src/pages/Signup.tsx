@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, ChangeEvent, FormEvent, KeyboardEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { registerUser, clearError } from '../store/slices/authSlice';
+import toast from 'react-hot-toast';
 import {
   ChefHat,
   Menu,
@@ -47,8 +50,9 @@ const SignUpPage = () => {
   // View State: 1 = Sign Up Form, 2 = OTP Verification
   const [step, setStep] = useState(1);
 
-  // Loading State
   const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useAppDispatch();
+  const { error } = useAppSelector((state) => state.auth);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -60,7 +64,7 @@ const SignUpPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
 
-  // OTP State
+  // OTP State (kept for future but unused right now)
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(30);
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
@@ -84,20 +88,32 @@ const SignUpPage = () => {
     }));
   };
 
-  const handleSignUpSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSignUpSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formData.termsAccepted) {
-      alert('Please accept the Terms & Conditions to proceed.');
+      toast.error('Please accept the Terms & Conditions to proceed.');
       return;
     }
-    setIsLoading(true);
 
-    // Simulate API call to create temp user & send OTP
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep(2); // Transition to OTP screen
-      setTimeLeft(30); // Reset timer just in case
-    }, 1200);
+    try {
+      if (error) dispatch(clearError());
+
+      const resultAction = await dispatch(
+        registerUser({
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password
+        })
+      ).unwrap();
+
+      toast.success('Account created successfully!');
+      navigate('/dashboard');
+
+    } catch (err) {
+      console.error('Registration failed:', err);
+      toast.error(err as string || 'Registration failed');
+    }
   };
 
   const handleOtpChange = (index: number, value: string) => {

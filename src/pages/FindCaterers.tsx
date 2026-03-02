@@ -374,7 +374,7 @@ export default function FindCaterersPage() {
     <div className="min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30">
       {/* Minimalist Top Nav (If not layout-wrapper provided) */}
 
-      <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-8 items-start mt-4">
+      <div className="  mx-auto px-6 py-4 sm:py-6 lg:py-8 flex flex-col lg:flex-row gap-8 items-start mt-4">
         {/* LEFT SIDEBAR: Filters (~25%) */}
         <div className="w-full lg:w-[320px] shrink-0">
           <FilterSidebar onReset={() => console.log('Reset filters')} />

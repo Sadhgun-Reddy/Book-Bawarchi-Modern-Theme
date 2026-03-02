@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { UtensilsCrossed, Menu, X } from 'lucide-react';
+import { UtensilsCrossed, Menu, X, User as UserIcon } from 'lucide-react';
+import { useAppSelector } from '../../hooks/redux';
 
 const Navbar: React.FC = () => {
+    const { isAuthenticated, user } = useAppSelector((state) => state.auth);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const location = useLocation();
@@ -31,11 +33,11 @@ const Navbar: React.FC = () => {
     return (
         <nav
             className={`sticky top-0 z-50 w-full transition-all duration-300 ${isScrolled
-                    ? 'bg-white/80 backdrop-blur-md border-b border-neutral-100 shadow-sm py-3'
-                    : 'bg-white border-b border-transparent py-5'
+                ? 'bg-white/80 backdrop-blur-md border-b border-neutral-100 shadow-sm py-3'
+                : 'bg-white border-b border-transparent py-5'
                 }`}
         >
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 lg:px-12">
+            <div className="mx-auto flex   items-center justify-between px-6 lg:px-12">
                 {/* Logo */}
                 <Link className="flex items-center gap-2 text-neutral-800 transition hover:opacity-80" to="/">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#ef9d2a] text-white shadow-lg shadow-orange-500/20">
@@ -51,8 +53,8 @@ const Navbar: React.FC = () => {
                             key={link.path}
                             to={link.path}
                             className={`text-sm font-bold transition-colors ${isActive(link.path)
-                                    ? 'text-[#ef9d2a]'
-                                    : 'text-stone-500 hover:text-stone-900'
+                                ? 'text-[#ef9d2a]'
+                                : 'text-stone-500 hover:text-stone-900'
                                 }`}
                         >
                             {link.name}
@@ -62,18 +64,30 @@ const Navbar: React.FC = () => {
 
                 {/* Auth Actions */}
                 <div className="hidden items-center gap-4 md:flex">
-                    <Link
-                        to="/login"
-                        className="text-sm font-bold text-stone-600 hover:text-stone-900 transition-colors"
-                    >
-                        Log In
-                    </Link>
-                    <Link
-                        to="/signup"
-                        className="px-6 py-2.5 rounded-full bg-stone-900 text-white text-sm font-bold hover:bg-stone-800 transition-colors shadow-md transform active:scale-95"
-                    >
-                        Get Started
-                    </Link>
+                    {isAuthenticated ? (
+                        <Link
+                            to={user?.role === 'caterer' || user?.role === 'admin' ? '/caterer' : '/dashboard'}
+                            className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-stone-900 text-white text-sm font-bold hover:bg-stone-800 transition-colors shadow-md transform active:scale-95"
+                        >
+                            <UserIcon size={16} />
+                            Dashboard
+                        </Link>
+                    ) : (
+                        <>
+                            <Link
+                                to="/login"
+                                className="text-sm font-bold text-stone-600 hover:text-stone-900 transition-colors"
+                            >
+                                Log In
+                            </Link>
+                            <Link
+                                to="/signup"
+                                className="px-6 py-2.5 rounded-full bg-stone-900 text-white text-sm font-bold hover:bg-stone-800 transition-colors shadow-md transform active:scale-95"
+                            >
+                                Get Started
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile Menu Toggle */}
@@ -93,8 +107,8 @@ const Navbar: React.FC = () => {
                             key={link.path}
                             to={link.path}
                             className={`text-lg font-bold transition-colors ${isActive(link.path)
-                                    ? 'text-[#ef9d2a]'
-                                    : 'text-stone-500'
+                                ? 'text-[#ef9d2a]'
+                                : 'text-stone-500'
                                 }`}
                             onClick={() => setIsMenuOpen(false)}
                         >
@@ -102,20 +116,33 @@ const Navbar: React.FC = () => {
                         </Link>
                     ))}
                     <div className="flex flex-col gap-3 pt-4 border-t border-stone-50">
-                        <Link
-                            to="/login"
-                            className="w-full py-4 text-center font-bold text-stone-600 border border-stone-200 rounded-2xl"
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            Log In
-                        </Link>
-                        <Link
-                            to="/signup"
-                            className="w-full py-4 text-center font-bold text-white bg-stone-900 rounded-2xl"
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            Get Started
-                        </Link>
+                        {isAuthenticated ? (
+                            <Link
+                                to={user?.role === 'caterer' || user?.role === 'admin' ? '/caterer' : '/dashboard'}
+                                className="w-full py-4 flex items-center justify-center gap-2 font-bold text-white bg-stone-900 rounded-2xl"
+                                onClick={() => setIsMenuOpen(false)}
+                            >
+                                <UserIcon size={18} />
+                                Dashboard
+                            </Link>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    className="w-full py-4 text-center font-bold text-stone-600 border border-stone-200 rounded-2xl"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    Log In
+                                </Link>
+                                <Link
+                                    to="/signup"
+                                    className="w-full py-4 text-center font-bold text-white bg-stone-900 rounded-2xl"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    Get Started
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
     Building2,
@@ -16,31 +16,69 @@ import {
     ArrowRight,
     ArrowLeft
 } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { catererRegister } from '../store/slices/authSlice';
+import api from '../services/api';
+import { Urls } from '../Urls';
+import toast from 'react-hot-toast';
 
 // Reusing style constants for consistency
 const inputClasses = "w-full rounded-2xl border-2 border-stone-200 bg-stone-50 px-5 py-4 font-bold text-stone-900 placeholder:text-stone-400 focus:border-[#ef9d2a] focus:ring-[#ef9d2a] focus:bg-white outline-none transition-all";
 
 export default function CatererSignupPage() {
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
+    const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
     const [formData, setFormData] = useState({
         // Step 1: Personal
-        ownerName: '',
-        email: '',
-        phone: '',
+        ownerName: user?.name || '',
+        email: user?.email || '',
+        phone: user?.phone || '',
         password: '',
         // Step 2: Business
         businessName: '',
-        city: '',
-        catererType: 'home-chef',
-        cuisines: '',
+        description: '',
+        yearsExperience: '',
+        specialties: '',
+        kitchenAddress: '',
+        serviceAreas: '',
+        capacity: '10-50 guests',
         // Step 3: Compliance
         fssaiNumber: '',
         gstin: '',
         termsAccepted: false,
     });
+
+    // Auto-skip step 1 for already authenticated caterers who need business setup
+    useEffect(() => {
+        if (isAuthenticated && user?.role === 'caterer') {
+            const checkExistingProfile = async () => {
+                try {
+                    const res = await api.get(Urls.CatererGetProfile);
+                    if (res.data.success) {
+                        // If they ALREADY have a profile, send them to dashboard
+                        navigate('/caterer', { replace: true });
+                    }
+                } catch (err: any) {
+                    // If 404/not found, they are in the right place but need to start at Step 2
+                    if (err.response?.status === 404 || err.response?.data?.error?.includes('not found')) {
+                        setStep(2);
+                        // Pre-fill Step 1 info just in case they go back
+                        setFormData(prev => ({
+                            ...prev,
+                            ownerName: user?.name || '',
+                            email: user?.email || '',
+                            phone: user?.phone || ''
+                        }));
+                    }
+                }
+            };
+            checkExistingProfile();
+        }
+    }, [isAuthenticated, user, navigate]);
 
     const handleInputChange = (e: any) => {
         const { name, value, type, checked } = e.target;
@@ -50,17 +88,63 @@ export default function CatererSignupPage() {
         }));
     };
 
-    const handleNext = () => setStep(prev => prev + 1);
     const handleBack = () => setStep(prev => prev - 1);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
-        // Simulate API registration
-        setTimeout(() => {
-            setIsLoading(false);
-            navigate('/dashboard'); // or a dedicated success page/caterer dashboard
-        }, 1500);
+
+        if (step === 1) {
+            setIsLoading(true);
+            try {
+                const userData = {
+                    name: formData.ownerName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    password: formData.password
+                };
+                const resultAction = await dispatch(catererRegister(userData));
+                if (catererRegister.fulfilled.match(resultAction)) {
+                    setStep(2);
+                } else {
+                    toast.error(resultAction.payload as string || 'Registration failed');
+                }
+            } catch (error) {
+                toast.error('An error occurred');
+            } finally {
+                setIsLoading(false);
+            }
+        } else if (step === 2) {
+            setStep(3);
+        } else if (step === 3) {
+            setIsLoading(true);
+            try {
+                const businessData = {
+                    businessName: formData.businessName,
+                    description: formData.description,
+                    yearsExperience: Number(formData.yearsExperience) || 0,
+                    specialties: formData.specialties.split(',').map(s => s.trim()).filter(Boolean),
+                    certifications: [
+                        `FSSAI: ${formData.fssaiNumber}`,
+                        formData.gstin ? `GSTIN: ${formData.gstin}` : null
+                    ].filter(Boolean),
+                    kitchenAddress: formData.kitchenAddress,
+                    serviceAreas: formData.serviceAreas.split(',').map(s => s.trim()).filter(Boolean),
+                    capacity: formData.capacity,
+                };
+
+                const res = await api.post(Urls.CatererBusinessApi, businessData);
+                if (res.data.success) {
+                    toast.success('Business profile created successfully! Welcome to Book Bawarchi.');
+                    navigate('/caterer');
+                } else {
+                    toast.error('Failed to create business profile');
+                }
+            } catch (error: any) {
+                toast.error(error.response?.data?.message || 'Business profile creation failed');
+            } finally {
+                setIsLoading(false);
+            }
+        }
     };
 
     return (
@@ -102,7 +186,7 @@ export default function CatererSignupPage() {
                         </div>
                     </div>
 
-                    <form onSubmit={step === 3 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }} className="flex flex-col gap-6">
+                    <form onSubmit={handleFormSubmit} className="flex flex-col gap-6">
 
                         {/* --- STEP 1: PERSONAL --- */}
                         {step === 1 && (
@@ -178,41 +262,82 @@ export default function CatererSignupPage() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-bold text-stone-700 mb-2 pl-2">Base City</label>
+                                        <label className="block text-sm font-bold text-stone-700 mb-2 pl-2">Kitchen Address</label>
                                         <div className="relative">
                                             <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
                                             <input
-                                                type="text" name="city" required
-                                                value={formData.city} onChange={handleInputChange}
-                                                placeholder="e.g. Mumbai"
+                                                type="text" name="kitchenAddress" required
+                                                value={formData.kitchenAddress} onChange={handleInputChange}
+                                                placeholder="e.g. 123 Main St, Mumbai"
                                                 className={`${inputClasses} pl-14`}
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-stone-700 mb-2 pl-2">Caterer Type</label>
-                                        <select
-                                            name="catererType"
-                                            value={formData.catererType} onChange={handleInputChange}
-                                            className={`${inputClasses} cursor-pointer appearance-none`}
-                                        >
-                                            <option value="home-chef">Home Chef / Cloud Kitchen</option>
-                                            <option value="commercial">Commercial Banquet Caterer</option>
-                                            <option value="specialized">Specialized / Diet Specific</option>
-                                        </select>
+                                        <label className="block text-sm font-bold text-stone-700 mb-2 pl-2">Service Areas (comma-separated)</label>
+                                        <div className="relative">
+                                            <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                                            <input
+                                                type="text" name="serviceAreas" required
+                                                value={formData.serviceAreas} onChange={handleInputChange}
+                                                placeholder="e.g. Andheri, Bandra, Juhu"
+                                                className={`${inputClasses} pl-14`}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold text-stone-700 mb-2 pl-2">Primary Cuisines & Specialties</label>
+                                    <label className="block text-sm font-bold text-stone-700 mb-2 pl-2">Business Description</label>
                                     <div className="relative">
                                         <Utensils className="absolute left-5 top-4 w-5 h-5 text-stone-400" />
                                         <textarea
-                                            name="cuisines" required rows={3}
-                                            value={formData.cuisines} onChange={handleInputChange}
-                                            placeholder="e.g. Authentic North Indian, Continental, Vegan specialities..."
+                                            name="description" required rows={2}
+                                            value={formData.description} onChange={handleInputChange}
+                                            placeholder="Premium catering for weddings and corporate events..."
                                             className={`${inputClasses} pl-14 resize-none`}
                                         />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-stone-700 mb-2 pl-2">Specialties (comma-separated)</label>
+                                    <div className="relative">
+                                        <Utensils className="absolute left-5 top-4 w-5 h-5 text-stone-400" />
+                                        <textarea
+                                            name="specialties" required rows={2}
+                                            value={formData.specialties} onChange={handleInputChange}
+                                            placeholder="e.g. Authentic North Indian, Continental, Vegan..."
+                                            className={`${inputClasses} pl-14 resize-none`}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-stone-700 mb-2 pl-2">Years of Experience</label>
+                                        <div className="relative">
+                                            <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+                                            <input
+                                                type="number" name="yearsExperience" required min="0"
+                                                value={formData.yearsExperience} onChange={handleInputChange}
+                                                placeholder="e.g. 5"
+                                                className={`${inputClasses} pl-14`}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-stone-700 mb-2 pl-2">Capacity</label>
+                                        <select
+                                            name="capacity"
+                                            value={formData.capacity} onChange={handleInputChange}
+                                            className={`${inputClasses} cursor-pointer appearance-none`}
+                                        >
+                                            <option value="10-50 guests">10-50 guests</option>
+                                            <option value="50-300 guests">50-300 guests</option>
+                                            <option value="300-1000 guests">300-1000 guests</option>
+                                            <option value="1000+ guests">1000+ guests</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -267,7 +392,7 @@ export default function CatererSignupPage() {
 
                         {/* Navigation Buttons */}
                         <div className="flex items-center gap-4 pt-6 mt-4 border-t border-stone-100">
-                            {step > 1 && (
+                            {step > 1 && (!isAuthenticated || step > 2) && (
                                 <button
                                     type="button" onClick={handleBack}
                                     className="flex items-center justify-center w-14 h-14 rounded-full border-2 border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors"

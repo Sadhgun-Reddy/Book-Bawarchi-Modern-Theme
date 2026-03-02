@@ -73,7 +73,7 @@ const DishEditor: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] text-stone-900 selection:bg-[#ef9d2a]/30">
       {/* Top Bar Wrapper / Header Context */}
-      <header className="sticky top-0 z-20 flex h-20 items-center border-b border-stone-100 bg-white/80 px-4 sm:px-8 backdrop-blur-md w-full max-w-7xl mx-auto">
+      <header className="sticky top-0 z-20 flex h-20 items-center border-b border-stone-100 bg-white/80 px-4 sm:px-8 backdrop-blur-md w-full   mx-auto">
         <div className="flex items-center gap-2 text-sm font-bold">
           <Link
             to="/caterer/menus"

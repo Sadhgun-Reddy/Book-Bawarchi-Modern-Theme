@@ -144,8 +144,8 @@ const FilterBar = ({ activeTab, setActiveTab }: any) => (
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all ${isActive
-                ? 'bg-[#ef9d2a] text-white shadow-md shadow-orange-500/20'
-                : 'bg-white border border-slate-200 text-slate-500 hover:border-[#ef9d2a]/50 hover:text-stone-900'
+              ? 'bg-[#ef9d2a] text-white shadow-md shadow-orange-500/20'
+              : 'bg-white border border-slate-200 text-slate-500 hover:border-[#ef9d2a]/50 hover:text-stone-900'
               }`}
           >
             {tab}
@@ -323,7 +323,7 @@ export default function ReviewsManagementPage() {
       {/* 
                 Container aligned for fluid dashboard right-column
             */}
-      <div className="max-w-[1200px] mx-auto p-4 sm:p-6 lg:p-8 shrink-0">
+      <div className="w-full">
         <div className="mb-8">
           <h1 className="text-3xl font-black text-stone-900 tracking-tight">Reviews Management</h1>
           <p className="text-base font-medium text-slate-500 mt-1">

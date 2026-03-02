@@ -106,10 +106,10 @@ const ProgressTracker = ({ currentStage }: any) => {
             <div key={stage.num} className="relative z-10 flex flex-col items-center gap-3">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center border-4 transition-all duration-300 ${isCompleted
-                    ? 'bg-[#ef9d2a] border-[#ef9d2a] text-white'
-                    : isActive
-                      ? 'bg-white border-[#ef9d2a] text-[#ef9d2a]'
-                      : 'bg-white border-stone-200 text-stone-300'
+                  ? 'bg-[#ef9d2a] border-[#ef9d2a] text-white'
+                  : isActive
+                    ? 'bg-white border-[#ef9d2a] text-[#ef9d2a]'
+                    : 'bg-white border-stone-200 text-stone-300'
                   }`}
               >
                 {isCompleted ? (
@@ -356,7 +356,7 @@ export default function FoodRequestDetailPage() {
   const request = { ...MOCK_REQUEST, id: `#REQ-${id}` };
 
   return (
-    <div className="min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30 p-4 sm:p-8 w-full max-w-7xl mx-auto flex flex-col pt-20 sm:pt-8">
+    <div className="min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30 p-4 sm:p-8 w-full   mx-auto flex flex-col pt-20 sm:pt-8">
       {/* Context Header */}
       <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="flex flex-col gap-2">

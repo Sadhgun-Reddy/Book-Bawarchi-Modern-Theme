@@ -271,7 +271,7 @@ const LoginPage = () => {
                   <p className="text-sm font-medium text-stone-600">
                     Are you a business?{' '}
                     <Link
-                      to="/caterer"
+                      to="/caterer-register"
                       className="font-bold text-[#1b160d] hover:text-[#ef9d2a] transition-colors inline-flex items-center gap-1"
                     >
                       Register as a caterer

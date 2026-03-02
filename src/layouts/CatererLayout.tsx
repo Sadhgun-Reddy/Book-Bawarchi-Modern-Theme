@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { logout } from '../store/slices/authSlice';
+import api from '../services/api';
+import { Urls } from '../Urls';
 import {
   LayoutDashboard,
   MenuSquare,
@@ -8,8 +12,6 @@ import {
   LogOut,
   Menu,
   ChefHat,
-  ChevronRight,
-  MailOpen,
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -18,10 +20,37 @@ interface LayoutProps {
 
 const CatererLayout: React.FC<LayoutProps> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [catererProfile, setCatererProfile] = useState<any>(null);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get(Urls.CatererGetProfile);
+        if (res.data.success) {
+          setCatererProfile(res.data.data);
+        }
+      } catch (err: any) {
+        console.error("Failed to fetch caterer profile:", err);
+        // If profile is not found, redirect to onboarding
+        if (err.response?.status === 404 || err.response?.data?.error?.includes('not found')) {
+          navigate('/caterer-register');
+        }
+      }
+    };
+    fetchProfile();
+  }, [navigate]);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
 
   const navItems = [
     { name: 'Dashboard', path: '/caterer', icon: LayoutDashboard },
-    { name: 'Enquiries', path: '/caterer/enquiries', icon: MailOpen, badge: 3 },
+    { name: 'Enquiries', path: '/caterer/enquiries', icon: ChefHat, badge: 3 },
     { name: 'Menu Management', path: '/caterer/menus', icon: MenuSquare },
     { name: 'Reviews', path: '/caterer/reviews', icon: Star },
     { name: 'Settings', path: '/caterer/settings', icon: Settings },
@@ -93,17 +122,22 @@ const CatererLayout: React.FC<LayoutProps> = ({ children }) => {
           {/* Profile & Bottom Actions */}
           <div className="flex flex-col gap-4 mt-6">
             <div className="p-4 bg-[#f8f7f6] rounded-2xl flex items-center gap-3 border border-stone-100">
-              <img
-                src="https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&q=80&w=150"
-                alt="Chef Profile"
-                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-              />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1b160d] text-white">
+                <ChefHat className="w-5 h-5" />
+              </div>
               <div className="overflow-hidden">
-                <p className="text-sm font-bold truncate text-[#1b160d]">Chef Arjun</p>
-                <p className="text-xs text-[#9a794c] font-medium truncate">Premium Member</p>
+                <p className="text-sm font-bold truncate text-[#1b160d]">
+                  {catererProfile?.businessName || user?.name || 'Caterer Profile'}
+                </p>
+                <p className="text-xs text-[#9a794c] font-medium truncate tracking-wide uppercase">
+                  {catererProfile?.approvalStatus || 'Pending'}
+                </p>
               </div>
             </div>
-            <button className="flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 bg-stone-100 text-[#1b160d] hover:bg-stone-200 transition-colors">
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 bg-stone-100 text-[#1b160d] hover:bg-stone-200 transition-colors"
+            >
               <LogOut className="w-5 h-5" />
               <span className="text-sm font-bold">Log Out</span>
             </button>
@@ -128,8 +162,8 @@ const CatererLayout: React.FC<LayoutProps> = ({ children }) => {
         </header>
 
         {/* Page Content */}
-        <div className="flex flex-1 flex-col p-6 lg:p-10 max-w-7xl mx-auto w-full pb-12">
-          {children || <Outlet />}
+        <div className="flex flex-1 flex-col p-6 lg:p-10   mx-auto w-full pb-12">
+          {children || <Outlet context={{ catererProfile }} />}
         </div>
       </main>
     </div>

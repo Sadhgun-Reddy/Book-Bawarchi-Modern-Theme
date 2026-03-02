@@ -111,7 +111,7 @@ const GALLERY: string[] = [
 // --- SUB-COMPONENTS ---
 
 const ProfileHero: React.FC<{ caterer: CatererProfileData }> = ({ caterer }) => (
-  <div className="relative w-full max-w-7xl mx-auto h-[400px] rounded-[2.5rem] overflow-hidden shadow-sm feature-hero mt-4">
+  <div className="relative w-full   mx-auto h-[400px] rounded-[2.5rem] overflow-hidden shadow-sm feature-hero mt-4">
     {/* Background Image & Gradient */}
     <img
       src={caterer.coverImage}
@@ -301,7 +301,7 @@ export default function CatererProfilePage() {
     <div className="min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30 pb-24">
       {/* Minimal Header Nav */}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="  mx-auto px-6">
         {/* 1. Hero Container */}
         <ProfileHero caterer={caterer} />
 

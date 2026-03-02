@@ -317,7 +317,7 @@ const ChatInputDock: React.FC = () => (
 export default function TicketDetailPage() {
   return (
     <div className="w-full min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30 pb-24 animate-in fade-in duration-500">
-      <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 pl-4  ">
+      <div className="w-full">
         <ThreadHeader />
 
         {/* --- 3-Column Split Structure --- */}

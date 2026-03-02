@@ -14,7 +14,7 @@ import {
   Reply,
   PartyPopper,
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 
 // TYPES
 interface KPIStat {
@@ -123,6 +123,7 @@ const MOCK_DATA: { kpiStats: KPIStat[]; recentEnquiries: RecentEnquiry[] } = {
 
 const CatererDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { catererProfile } = useOutletContext<{ catererProfile: any }>();
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in">
@@ -130,7 +131,7 @@ const CatererDashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1b160d] mb-2">
-            Welcome back, Chef Arjun!
+            Welcome back, {catererProfile?.user?.name || catererProfile?.businessName || 'Chef'}!
           </h1>
           <p className="text-stone-500 text-lg">
             Here's what's happening with your catering business today.

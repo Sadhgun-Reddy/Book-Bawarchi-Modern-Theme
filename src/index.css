@@ -5,6 +5,11 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 80%;
+    /* Decreases all rem-based sizes (font, spacing, etc.) by 20% */
+  }
+
   body {
     @apply font-sans antialiased text-textMain bg-background-light;
   }

@@ -251,7 +251,7 @@ const TicketTable: React.FC = () => (
 export default function SupportTicketsPage() {
   return (
     <div className="w-full min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30 pb-24 animate-in fade-in duration-500">
-      <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 pl-4 lg:pl-[280px]">
+      <div className="w-full">
         <TicketHeader />
 
         {/* Massive Main Card Container */}

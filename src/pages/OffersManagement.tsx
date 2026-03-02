@@ -212,7 +212,7 @@ export default function OffersManagementPage() {
   };
 
   return (
-    <div className="p-4 sm:p-8 w-full max-w-[1600px] mx-auto min-h-screen">
+    <div className="w-full">
       {/* Header Area */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-10">
         <div className="flex flex-col gap-2">
@@ -256,8 +256,8 @@ export default function OffersManagementPage() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${activeTab === tab
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                 }`}
             >
               {tab}

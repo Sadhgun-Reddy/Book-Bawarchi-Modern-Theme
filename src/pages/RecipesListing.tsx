@@ -216,7 +216,7 @@ const RecipesListing = () => {
   return (
     <div className="flex flex-col bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] text-stone-900 selection:bg-[#ef9d2a]/30">
 
-      <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <main className="flex-grow w-full   mx-auto px-6 py-8 md:py-12">
         {/* Hero & Search Array */}
         <div className="flex flex-col items-center text-center gap-6 mb-12 animate-fade-in-up">
           <div className="space-y-2 max-w-2xl">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAppSelector } from '../hooks/redux';
 import {
   Flame,
   MapPin,
@@ -155,7 +156,7 @@ const Hero = () => {
 };
 
 const ProblemSolution = () => (
-  <section className="mx-auto max-w-7xl px-6 py-20">
+  <section className="mx-auto   px-6 py-20">
     <div className="grid gap-8 lg:grid-cols-2">
       {/* Problem Card */}
       <div className="relative flex flex-col justify-center overflow-hidden rounded-3xl bg-neutral-100 p-10 lg:p-16">
@@ -231,7 +232,7 @@ const CatererCard = ({ caterer }: any) => {
 const FeaturedCaterers = () => {
   return (
     <section className="py-20 bg-neutral-50 border-y border-neutral-100 overflow-hidden">
-      <div className="mx-auto max-w-7xl px-6">
+      <div className="mx-auto   px-6">
         <div className="flex items-end justify-between mb-12">
           <div>
             <h2 className="font-display text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
@@ -296,7 +297,7 @@ const HowItWorks = () => {
 
   return (
     <section className="py-24 bg-white">
-      <div className="mx-auto max-w-7xl px-6">
+      <div className="mx-auto   px-6">
         <div className="mb-16 text-center">
           <span className="mb-3 block text-sm font-bold uppercase tracking-wider text-primary">
             Simple & Secure
@@ -361,7 +362,7 @@ const RecipeCard = ({ recipe }: any) => {
 
 const CommunityRecipes = () => (
   <section className="overflow-hidden bg-primary-light/40 py-24 border-y border-neutral-100">
-    <div className="mx-auto max-w-7xl px-6">
+    <div className="mx-auto   px-6">
       <h2 className="font-display mb-12 text-center text-3xl font-bold text-neutral-900 sm:text-4xl">
         Latest Recipes from the Community
       </h2>
@@ -376,6 +377,7 @@ const CommunityRecipes = () => (
 
 const CTASection = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   return (
     <section className="py-24 bg-white relative overflow-hidden">
@@ -384,11 +386,13 @@ const CTASection = () => {
 
       <div className="mx-auto max-w-4xl px-6 text-center relative z-10">
         <h2 className="font-display mb-6 text-4xl font-extrabold tracking-tight text-neutral-900 sm:text-5xl">
-          Ready to taste the difference?
+          {isAuthenticated ? 'Ready for your next event?' : 'Ready to taste the difference?'}
         </h2>
         <p className="mb-10 text-xl font-medium text-neutral-600">
-          Join thousands of food lovers and talented local chefs building a stronger community through
-          food.
+          {isAuthenticated
+            ? 'Browse our top-rated caterers and plan your next memorable meal today.'
+            : 'Join thousands of food lovers and talented local chefs building a stronger community through food.'
+          }
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <button
@@ -397,9 +401,17 @@ const CTASection = () => {
           >
             Find a Caterer
           </button>
+          {!isAuthenticated && (
+            <button
+              onClick={() => navigate('/signup')}
+              className="h-14 min-w-[200px] rounded-full border-2 border-neutral-200 bg-transparent px-8 text-lg font-bold text-neutral-900 transition hover:border-neutral-300 hover:bg-neutral-50"
+            >
+              Get Started
+            </button>
+          )}
           <button
             onClick={() => navigate('/recipes')}
-            className="h-14 min-w-[200px] rounded-full border-2 border-neutral-200 bg-transparent px-8 text-lg font-bold text-neutral-900 transition hover:border-neutral-300 hover:bg-neutral-50"
+            className={`h-14 min-w-[200px] rounded-full border-2 border-neutral-200 bg-transparent px-8 text-lg font-bold text-neutral-900 transition hover:border-neutral-300 hover:bg-neutral-50 ${isAuthenticated ? '' : 'sm:hidden lg:inline-flex'}`}
           >
             View Recipes
           </button>

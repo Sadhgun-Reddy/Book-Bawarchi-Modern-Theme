@@ -352,7 +352,7 @@ const RecipeDetailPage: React.FC = () => {
     <div className="flex flex-col bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] text-stone-900 selection:bg-[#ef9d2a]/30">
 
       {/* Main Content Wrapper */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
+      <main className="flex-1 w-full   mx-auto px-6 py-8 md:py-16">
         {/* 1. Header Logic */}
         <RecipeHeroGrid data={data} />
 

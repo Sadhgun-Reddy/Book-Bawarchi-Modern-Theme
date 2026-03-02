@@ -14,6 +14,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAppSelector } from '../hooks/redux';
 
 // --- MOCK DATA ---
 
@@ -118,7 +119,7 @@ const TRUST_FEATURES = [
 // --- SUB-COMPONENTS ---
 
 const VideoHero = () => (
-  <div className="max-w-7xl mx-auto pt-20 pb-16 px-6 text-center">
+  <div className="  mx-auto pt-20 pb-16 px-6 text-center">
     <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-stone-900 tracking-tight leading-tight max-w-4xl mx-auto">
       How Book Bawarchi is <span className="text-[#ef9d2a]">Simplified</span>
     </h1>
@@ -149,7 +150,7 @@ const VideoHero = () => (
 );
 
 const ProcessStepper = () => (
-  <div className="max-w-7xl mx-auto py-24 px-6 relative w-full overflow-hidden">
+  <div className="  mx-auto py-24 px-6 relative w-full overflow-hidden">
     <div className="text-center mb-16">
       <span className="text-sm font-black text-[#ef9d2a] uppercase tracking-widest">
         For Customers
@@ -192,7 +193,7 @@ const ProcessStepper = () => (
 
 const ZigZagFeatures = () => (
   <div className="bg-white py-24 w-full">
-    <div className="max-w-7xl mx-auto px-6 flex flex-col gap-24">
+    <div className="  mx-auto px-6 flex flex-col gap-24">
       <div className="text-center">
         <span className="text-sm font-black text-[#ef9d2a] uppercase tracking-widest">
           For Caterers
@@ -261,7 +262,7 @@ const VerticalTimeline = () => (
       <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-emerald-500 rounded-full blur-3xl"></div>
     </div>
 
-    <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
+    <div className="  mx-auto px-6 relative z-10 w-full">
       <div className="text-center mb-20">
         <span className="text-sm font-black text-[#ef9d2a] uppercase tracking-widest">
           Community
@@ -311,7 +312,7 @@ const VerticalTimeline = () => (
 );
 
 const TrustSafetyGrid = () => (
-  <div className="w-full py-24 mb-10 max-w-7xl mx-auto px-6">
+  <div className="w-full py-24 mb-10   mx-auto px-6">
     <div className="text-center mb-16">
       <h2 className="text-3xl md:text-4xl font-black text-stone-900">Trust & Safety First</h2>
     </div>
@@ -340,41 +341,57 @@ const TrustSafetyGrid = () => (
   </div>
 );
 
-const BottomCTABlock = () => (
-  <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pb-24">
-    {/* The Orange Ribbon */}
-    <div className="w-full bg-[#ef9d2a] rounded-[3rem] p-12 md:p-16 text-center shadow-xl shadow-orange-500/20 relative overflow-hidden flex flex-col items-center justify-center min-h-[400px] overflow-hidden">
-      {/* Background Decorations */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-black/10 rounded-full blur-3xl pointer-events-none"></div>
+const BottomCTABlock = () => {
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
-      <div className="relative z-10 flex flex-col items-center max-w-2xl">
-        <h2 className="text-4xl md:text-5xl font-black text-white leading-tight mb-6">
-          Ready to Plan Your Perfect Event?
-        </h2>
-        <p className="text-orange-50 text-lg md:text-xl font-medium mb-10 max-w-xl">
-          Join thousands of happy hosts and verified caterers scaling their experiences with Book
-          Bawarchi.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full px-4">
-          <Link
-            to="/caterer-register"
-            className="w-full sm:w-auto px-10 py-4 bg-white text-[#ef9d2a] rounded-full font-black text-lg flex items-center justify-center gap-2 hover:bg-orange-50 hover:scale-105 active:scale-95 transition-all shadow-xl"
-          >
-            Get Started Now
-            <ArrowRight className="w-5 h-5" strokeWidth={3} />
-          </Link>
-          <Link
-            to="/contact"
-            className="w-full sm:w-auto px-10 py-4 bg-transparent border-2 border-orange-200 text-white rounded-full font-bold text-lg hover:bg-orange-400/30 transition-colors"
-          >
-            Contact Sales
-          </Link>
+  return (
+    <div className="  mx-auto px-6 pb-24">
+      {/* The Orange Ribbon */}
+      <div className="w-full bg-[#ef9d2a] rounded-[3rem] p-12 md:p-16 text-center shadow-xl shadow-orange-500/20 relative overflow-hidden flex flex-col items-center justify-center min-h-[400px]">
+        {/* Background Decorations */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-black/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="relative z-10 flex flex-col items-center max-w-2xl">
+          <h2 className="text-4xl md:text-5xl font-black text-white leading-tight mb-6">
+            {isAuthenticated ? 'Plan Your Next Success' : 'Ready to Plan Your Perfect Event?'}
+          </h2>
+          <p className="text-orange-50 text-lg md:text-xl font-medium mb-10 max-w-xl">
+            {isAuthenticated
+              ? 'Browse our top caterers or check your ongoing enquiries from the dashboard.'
+              : 'Join thousands of happy hosts and verified caterers scaling their experiences with Book Bawarchi.'
+            }
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full px-4">
+            {isAuthenticated ? (
+              <Link
+                to={user?.role === 'caterer' || user?.role === 'admin' ? '/caterer' : '/dashboard'}
+                className="w-full sm:w-auto px-10 py-4 bg-white text-[#ef9d2a] rounded-full font-black text-lg flex items-center justify-center gap-2 hover:bg-orange-50 hover:scale-105 active:scale-95 transition-all shadow-xl"
+              >
+                Go to Dashboard
+                <ArrowRight className="w-5 h-5" strokeWidth={3} />
+              </Link>
+            ) : (
+              <Link
+                to="/caterer-register"
+                className="w-full sm:w-auto px-10 py-4 bg-white text-[#ef9d2a] rounded-full font-black text-lg flex items-center justify-center gap-2 hover:bg-orange-50 hover:scale-105 active:scale-95 transition-all shadow-xl"
+              >
+                Get Started Now
+                <ArrowRight className="w-5 h-5" strokeWidth={3} />
+              </Link>
+            )}
+            <Link
+              to="/contact"
+              className="w-full sm:w-auto px-10 py-4 bg-transparent border-2 border-orange-200 text-white rounded-full font-bold text-lg hover:bg-orange-400/30 transition-colors"
+            >
+              Contact Support
+            </Link>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // --- MAIN PAGE ---
 

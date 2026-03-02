@@ -5,7 +5,7 @@ import { UtensilsCrossed, Globe, Camera, AtSign, ArrowRight } from 'lucide-react
 const Footer: React.FC = () => {
     return (
         <footer className="border-t border-neutral-100 bg-white py-16">
-            <div className="mx-auto max-w-7xl px-6 lg:px-12">
+            <div className="mx-auto   px-6 lg:px-12">
                 <div className="grid gap-12 lg:grid-cols-4">
                     {/* Brand */}
                     <div className="lg:col-span-1">
