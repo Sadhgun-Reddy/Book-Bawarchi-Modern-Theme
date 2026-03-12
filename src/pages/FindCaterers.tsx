@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   MapPin,
@@ -11,11 +11,16 @@ import {
   ChevronDown,
   Building2,
   Users,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { fetchCaterers } from '../store/slices/catererSlice';
+import { Caterer as ApiCaterer } from '../types';
 
 // --- INTERFACES ---
-interface Caterer {
+interface UICaterer {
   id: string;
   name: string;
   rating: number;
@@ -29,100 +34,6 @@ interface Caterer {
   isVerified: boolean;
   tags: string[];
 }
-
-// --- MOCK DATA ---
-const MOCK_CATERERS: Caterer[] = [
-  {
-    id: 'CAT-001',
-    name: 'Royal Feast Caterers',
-    rating: 4.9,
-    reviews: 120,
-    cuisine: 'North Indian, Continental',
-    distance: '3.2 km',
-    eventTypes: ['Weddings', 'Corporate'],
-    minOrder: '$500',
-    pricePerPlate: '$25 - $45',
-    image:
-      'https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&q=80&w=800',
-    isVerified: true,
-    tags: ['Premium', 'Top Rated'],
-  },
-  {
-    id: 'CAT-002',
-    name: 'Green Leaf Vegan Banquets',
-    rating: 4.7,
-    reviews: 85,
-    cuisine: 'Healthy, Vegan, Italian',
-    distance: '5.1 km',
-    eventTypes: ['Private Parties', 'Corporate'],
-    minOrder: '$200',
-    pricePerPlate: '$15 - $30',
-    image:
-      'https://images.unsplash.com/photo-1498837167922-41c53bbfcdcd?auto=format&fit=crop&q=80&w=800',
-    isVerified: true,
-    tags: ['Eco-Friendly'],
-  },
-  {
-    id: 'CAT-003',
-    name: 'Spice Route Express',
-    rating: 4.5,
-    reviews: 42,
-    cuisine: 'South Indian, Street Food',
-    distance: '1.8 km',
-    eventTypes: ['Birthdays', 'Casual'],
-    minOrder: '$100',
-    pricePerPlate: '$10 - $20',
-    image:
-      'https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&q=80&w=800',
-    isVerified: false,
-    tags: [],
-  },
-  {
-    id: 'CAT-004',
-    name: 'Oceanic Seafood & Grill',
-    rating: 4.8,
-    reviews: 210,
-    cuisine: 'Seafood, Mediterranean',
-    distance: '7.5 km',
-    eventTypes: ['Weddings', 'Galas'],
-    minOrder: '$1000',
-    pricePerPlate: '$40 - $80',
-    image:
-      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&q=80&w=800',
-    isVerified: true,
-    tags: ['Luxury'],
-  },
-  {
-    id: 'CAT-005',
-    name: "Mama Joy's Home Cooking",
-    rating: 4.6,
-    reviews: 34,
-    cuisine: 'Comfort Food, BBQ',
-    distance: '2.0 km',
-    eventTypes: ['Family Events', 'Tailgates'],
-    minOrder: '$150',
-    pricePerPlate: '$12 - $25',
-    image:
-      'https://images.unsplash.com/photo-1530103862676-de8892b07d5b?auto=format&fit=crop&q=80&w=800',
-    isVerified: false,
-    tags: ['Home Chef'],
-  },
-  {
-    id: 'CAT-006',
-    name: 'Artisan Baking Co.',
-    rating: 4.9,
-    reviews: 305,
-    cuisine: 'Desserts, French Pastry',
-    distance: '4.2 km',
-    eventTypes: ['Weddings', 'Bridal Showers'],
-    minOrder: '$300',
-    pricePerPlate: '$15 - $35',
-    image:
-      'https://images.unsplash.com/photo-1550184658-ff6132a71714?auto=format&fit=crop&q=80&w=800',
-    isVerified: true,
-    tags: ['Award Winning'],
-  },
-];
 
 const CUISINES: string[] = [
   'North Indian',
@@ -259,7 +170,7 @@ const FilterSidebar: React.FC<{ onReset: () => void }> = ({ onReset }) => {
   );
 };
 
-const CatererCard: React.FC<{ caterer: Caterer }> = ({ caterer }) => {
+const CatererCard: React.FC<{ caterer: UICaterer }> = ({ caterer }) => {
   const navigate = useNavigate();
 
   return (
@@ -369,18 +280,67 @@ const CatererCard: React.FC<{ caterer: Caterer }> = ({ caterer }) => {
 
 export default function FindCaterersPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const dispatch = useAppDispatch();
+  const { caterers: apiCaterers, isLoading, error, count } = useAppSelector((state) => state.caterer);
+
+  useEffect(() => {
+    dispatch(fetchCaterers());
+  }, [dispatch]);
+
+  // Helper to map API data to UI interface
+  const mapToUICaterer = (api: ApiCaterer): UICaterer => {
+    return {
+      id: api._id,
+      name: api.businessName,
+      rating: 4.5 + (Math.random() * 0.5), // Randomized high rating as static placeholder
+      reviews: Math.floor(Math.random() * 200) + 10, // Randomized review count as static placeholder
+      cuisine: api.specialties[0] || 'International',
+      distance: `${(Math.random() * 5 + 1).toFixed(1)} km`, // Static distance placeholder
+      eventTypes: api.specialties.length > 0 ? api.specialties : ['Catering'],
+      minOrder: '$500', // Static placeholder
+      pricePerPlate: '$20 - $50', // Static placeholder
+      image: `https://images.unsplash.com/photo-${api.specialties.includes('Wedding') ? '1519741497674-611481863552' : '1555244162-803834f70033'}?auto=format&fit=crop&q=80&w=800`,
+      isVerified: api.approvalStatus === 'approved',
+      tags: api.approvalStatus === 'approved' ? ['Verified', 'Top Rated'] : [],
+    };
+  };
+
+  const uiCaterers = apiCaterers.map(mapToUICaterer);
+
+  const onResetFilters = () => {
+    console.log('Reset filters');
+    dispatch(fetchCaterers());
+  };
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#fcfaf8] flex items-center justify-center p-6">
+        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-stone-100 max-w-sm w-full text-center">
+          <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle size={32} />
+          </div>
+          <h2 className="text-xl font-black text-stone-900 mb-2">Oops!</h2>
+          <p className="text-stone-500 text-sm mb-6">{error}</p>
+          <button
+            onClick={() => dispatch(fetchCaterers())}
+            className="w-full py-3 bg-[#ef9d2a] text-white font-bold rounded-full hover:bg-[#d98a1e] transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30">
-      {/* Minimalist Top Nav (If not layout-wrapper provided) */}
-
-      <div className="  mx-auto px-6 py-4 sm:py-6 lg:py-8 flex flex-col lg:flex-row gap-8 items-start mt-4">
-        {/* LEFT SIDEBAR: Filters (~25%) */}
+      <div className="mx-auto px-6 py-4 sm:py-6 lg:py-8 flex flex-col lg:flex-row gap-8 items-start mt-4">
+        {/* LEFT SIDEBAR: Filters */}
         <div className="w-full lg:w-[320px] shrink-0">
-          <FilterSidebar onReset={() => console.log('Reset filters')} />
+          <FilterSidebar onReset={onResetFilters} />
         </div>
 
-        {/* MAIN CONTENT (~75%) */}
+        {/* MAIN CONTENT */}
         <div className="flex-1 w-full flex flex-col min-w-0 pb-20">
           {/* Search Hero Pill */}
           <div className="bg-white rounded-[2rem] p-3 shadow-sm border border-stone-100 flex items-center mb-8 relative z-20">
@@ -393,11 +353,9 @@ export default function FindCaterersPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-transparent border-none outline-none text-stone-900 font-medium placeholder:text-stone-400 py-3"
               />
-              {/* Vertical Divider */}
               <div className="hidden md:block absolute right-4 top-2 bottom-2 w-px bg-stone-100"></div>
             </div>
 
-            {/* Optional Second Input Block (Date/Guests) - Hidden on smallest screens */}
             <div className="hidden md:flex flex-1 items-center px-8 gap-3">
               <Users className="w-5 h-5 text-stone-400 shrink-0" />
               <div className="flex flex-col">
@@ -419,7 +377,7 @@ export default function FindCaterersPage() {
             <h2 className="text-2xl font-black text-stone-900 tracking-tight">
               Top Rated Caterers{' '}
               <span className="text-stone-400 font-medium text-lg ml-2">
-                {MOCK_CATERERS.length} found
+                {isLoading ? '...' : `${count} found`}
               </span>
             </h2>
             <div className="hidden sm:flex items-center gap-2">
@@ -430,19 +388,37 @@ export default function FindCaterersPage() {
             </div>
           </div>
 
-          {/* Caterer Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {MOCK_CATERERS.map((caterer) => (
-              <CatererCard key={caterer.id} caterer={caterer} />
-            ))}
-          </div>
+          {/* Caterer Grid or Loading */}
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <Loader2 className="w-10 h-10 text-[#ef9d2a] animate-spin" />
+              <p className="text-stone-500 font-medium animate-pulse">Finding best caterers for you...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {uiCaterers.map((caterer) => (
+                <CatererCard key={caterer.id} caterer={caterer} />
+              ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && uiCaterers.length === 0 && (
+            <div className="bg-white rounded-[2rem] p-12 text-center border border-stone-100">
+              <Utensils className="w-12 h-12 text-stone-200 mx-auto mb-4" />
+              <h3 className="text-xl font-black text-stone-900 mb-2">No caterers found</h3>
+              <p className="text-stone-500 text-sm">Try adjusting your search or filters to find more results.</p>
+            </div>
+          )}
 
           {/* Load More */}
-          <div className="w-full flex justify-center mt-12">
-            <button className="px-8 py-4 rounded-full bg-white border-2 border-stone-200 text-stone-600 font-black hover:border-stone-300 hover:bg-stone-50 transition-colors shadow-sm focus:ring-4 focus:ring-stone-100">
-              Load 12 more caterers
-            </button>
-          </div>
+          {!isLoading && uiCaterers.length > 0 && uiCaterers.length < count && (
+            <div className="w-full flex justify-center mt-12">
+              <button className="px-8 py-4 rounded-full bg-white border-2 border-stone-200 text-stone-600 font-black hover:border-stone-300 hover:bg-stone-50 transition-colors shadow-sm focus:ring-4 focus:ring-stone-100">
+                Load more caterers
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

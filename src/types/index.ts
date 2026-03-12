@@ -61,3 +61,34 @@ export interface SupportTicket {
     category: string;
     createdAt: string;
 }
+
+export interface Caterer {
+    _id: string;
+    id: string;
+    user: {
+        _id: string;
+        name: string;
+        email: string;
+    };
+    businessName: string;
+    description: string;
+    yearsExperience: number;
+    specialties: string[];
+    certifications: string[];
+    kitchenAddress: string;
+    serviceAreas: string[];
+    capacity: string;
+    approvalStatus: 'pending' | 'approved' | 'rejected';
+    profileViews: number;
+    responseRate: number;
+    createdAt: string;
+    updatedAt: string;
+    adminRemarks?: string;
+}
+
+export interface CatererState {
+    caterers: Caterer[];
+    isLoading: boolean;
+    error: string | null;
+    count: number;
+}
