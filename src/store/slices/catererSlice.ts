@@ -17,14 +17,32 @@ export const fetchCaterers = createAsyncThunk<{ data: Caterer[]; count: number }
             };
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.message || 'Failed to fetch caterers. Please try again later.'
+                error.response?.data?.error || error.response?.data?.message || 'Failed to fetch caterers. Please try again later.'
             );
         }
     }
 );
 
-const initialState: CatererState = {
+export const fetchCatererById = createAsyncThunk<Caterer, string>(
+    'caterer/fetchCatererById',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`${Urls.CatererBusinessApi}/${id}`);
+            if (!response.data.success) {
+                return rejectWithValue('Caterer not found');
+            }
+            return response.data.data;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.error || error.response?.data?.message || 'Failed to fetch caterer profile.'
+            );
+        }
+    }
+);
+
+const initialState: CatererState & { currentCaterer: Caterer | null } = {
     caterers: [],
+    currentCaterer: null,
     isLoading: false,
     error: null,
     count: 0,
@@ -50,6 +68,19 @@ const catererSlice = createSlice({
                 state.count = action.payload.count;
             })
             .addCase(fetchCaterers.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload as string;
+            })
+            // Fetch Caterer By ID
+            .addCase(fetchCatererById.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchCatererById.fulfilled, (state, action: PayloadAction<Caterer>) => {
+                state.isLoading = false;
+                state.currentCaterer = action.payload;
+            })
+            .addCase(fetchCatererById.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload as string;
             });

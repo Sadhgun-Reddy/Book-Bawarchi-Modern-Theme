@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   Filter,
@@ -14,65 +14,15 @@ import {
   Calendar,
   Plus,
   IceCream,
+  Loader2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { FoodRequest } from '../types';
-
-// --- MOCK DATA ---
-const MOCK_REQUESTS: any[] = [
-  {
-    id: '#REQ-001',
-    foodTitle: 'Rice & Curry Meals',
-    foodType: 'meals', // determines icon/color
-    quantity: '50 Servings',
-    location: 'Downtown Shelter',
-    urgency: 'high',
-    status: 'open',
-    note: 'Needs pickup by 5 PM sharp.',
-  },
-  {
-    id: '#REQ-002',
-    foodTitle: 'Fresh Vegetables',
-    foodType: 'produce',
-    quantity: '20 kg',
-    location: 'Community Center B',
-    urgency: 'medium',
-    status: 'pending',
-    note: 'Check refrigeration capacity first.',
-  },
-  {
-    id: '#REQ-003',
-    foodTitle: 'Bread Loaves',
-    foodType: 'bakery',
-    quantity: '100 Units',
-    location: 'Hope Kitchen',
-    urgency: 'low',
-    status: 'open',
-    note: 'Bakery donation surplus.',
-  },
-  {
-    id: '#REQ-004',
-    foodTitle: 'Milk Cartons',
-    foodType: 'dairy',
-    quantity: '30 Liters',
-    location: 'Kids Safe Home',
-    urgency: 'high',
-    status: 'closed',
-    note: 'Delivered successfully.',
-  },
-  {
-    id: '#REQ-005',
-    foodTitle: 'Fruit Baskets',
-    foodType: 'produce',
-    quantity: '15 Units',
-    location: 'Senior Care A',
-    urgency: 'low',
-    status: 'open',
-    note: 'Seasonal fruits only.',
-  },
-];
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { fetchDonations } from '../store/slices/donationSlice';
+import { Donation } from '../types';
 
 // --- HELPER COMPONENTS ---
+
 
 // 1. Food Type Visualizer
 const FoodTypeIcon = ({ type }: { type: string }) => {
@@ -247,43 +197,42 @@ const RequestsTable = ({ data }: { data: any[] }) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
-            {data.map((req, idx) => (
+            {data.map((req: Donation, idx) => (
               <tr
-                key={idx}
+                key={req._id || idx}
                 className="group hover:bg-[#ef9d2a]/[0.05] transition-colors cursor-default"
               >
                 <td className="px-6 py-5">
                   <span className="text-sm font-bold text-stone-500 font-mono tracking-tight">
-                    {req.id}
+                    #{req._id?.substring(0, 6).toUpperCase()}
                   </span>
                 </td>
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">
-                    <FoodTypeIcon type={req.foodType} />
-                    <span className="text-sm font-bold text-stone-900">{req.foodTitle}</span>
+                    <FoodTypeIcon type={req.foodType?.toLowerCase() || 'meals'} />
+                    <span className="text-sm font-bold text-stone-900 capitalize">{req.foodType || 'General Food'}</span>
                   </div>
                 </td>
                 <td className="px-6 py-5">
                   <span className="text-sm font-bold text-stone-600">{req.quantity}</span>
                 </td>
                 <td className="px-6 py-5">
-                  <span className="text-sm font-medium text-stone-600">{req.location}</span>
+                  <span className="text-sm font-medium text-stone-600 truncate max-w-[150px] inline-block">{req.pickupLocation}</span>
                 </td>
                 <td className="px-6 py-5 text-center">
-                  <UrgencyBadge level={req.urgency} />
+                  <UrgencyBadge level="medium" /> {/* Dynamic urgency could be calculated from expiry */}
                 </td>
                 <td className="px-6 py-5 text-center">
                   <StatusBadge status={req.status} />
                 </td>
                 <td className="px-6 py-5 hidden lg:table-cell">
                   <p className="text-xs font-medium text-stone-400 max-w-[160px] truncate">
-                    {req.note}
+                    {req.specialInstructions || 'N/A'}
                   </p>
                 </td>
                 <td className="px-6 py-5 text-right">
-                  {/* Action Button */}
                   <Link
-                    to={`/caterer/requests/${req.id.replace('#REQ-', '')}`}
+                    to={`/caterer/requests/${req._id}`}
                     className="inline-flex items-center gap-2 justify-center h-10 px-6 rounded-full border border-stone-200 text-stone-600 text-xs font-bold hover:bg-[#ef9d2a] hover:text-white hover:border-[#ef9d2a] transition-all shadow-sm"
                   >
                     View <Eye className="w-4 h-4" />
@@ -292,6 +241,7 @@ const RequestsTable = ({ data }: { data: any[] }) => {
               </tr>
             ))}
           </tbody>
+
         </table>
       </div>
 
@@ -323,7 +273,12 @@ const RequestsTable = ({ data }: { data: any[] }) => {
 };
 
 export default function FoodRequestsPage() {
-  const [requests] = useState<any[]>(MOCK_REQUESTS);
+  const dispatch = useAppDispatch();
+  const { donations, isLoading, error } = useAppSelector((state) => state.donation);
+
+  useEffect(() => {
+    dispatch(fetchDonations());
+  }, [dispatch]);
 
   return (
     <div className="min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30 p-4 sm:p-8 w-full   mx-auto flex flex-col h-full overflow-hidden">
@@ -354,7 +309,19 @@ export default function FoodRequestsPage() {
           <RequestsToolbar />
 
           {/* Render Main Table */}
-          <RequestsTable data={requests} />
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[2rem] shadow-sm">
+                <Loader2 className="w-12 h-12 text-[#ef9d2a] animate-spin mb-4" />
+                <p className="text-stone-500 font-bold">Loading donations...</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[2rem] shadow-sm">
+                 <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+                 <p className="text-red-500 font-bold">{error}</p>
+            </div>
+          ) : (
+             <RequestsTable data={donations} />
+          )}
         </div>
       </div>
     </div>

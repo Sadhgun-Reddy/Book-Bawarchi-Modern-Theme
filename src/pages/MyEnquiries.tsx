@@ -18,112 +18,70 @@ import {
   Filter,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { fetchMyEnquiries } from '../store/slices/enquirySlice';
+import { Enquiry } from '../types';
+import { Loader2 } from 'lucide-react';
 
-// --- MOCK DATA ---
-const STATS = [
-  { label: 'SENT', value: '12', icon: Send, color: 'text-blue-500', bg: 'bg-blue-50' },
-  {
-    label: 'RESPONSES',
-    value: '5',
-    icon: MessageSquare,
-    color: 'text-orange-500',
-    bg: 'bg-orange-50',
-  },
-  { label: 'BOOKED', value: '2', icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-50' },
-  { label: 'CLOSED', value: '8', icon: Archive, color: 'text-slate-500', bg: 'bg-slate-50' },
-];
-
-const MOCK_ENQUIRIES = [
-  {
-    id: '#BB-2023-089',
-    eventType: 'Wedding Reception',
-    eventIcon: PartyPopper,
-    iconColor: 'text-purple-600',
-    iconBg: 'bg-purple-100',
-    caterer: 'Spice Route Kitchen',
-    catererAvatar: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=100&h=100&fit=crop',
-    catererInitials: null,
-    dateLines: ['Oct 24,', '2023'],
-    guests: 350,
-    status: 'Responded',
-  },
-  {
-    id: '#BB-2023-092',
-    eventType: 'Birthday Bash',
-    eventIcon: Cake,
-    iconColor: 'text-blue-600',
-    iconBg: 'bg-blue-100',
-    caterer: 'Golden Knife Catering',
-    catererAvatar: null,
-    catererInitials: 'GK',
-    dateLines: ['Nov 12,', '2023'],
-    guests: 80,
-    status: 'Pending',
-  },
-  {
-    id: '#BB-2023-104',
-    eventType: 'Corporate Lunch',
-    eventIcon: Briefcase,
-    iconColor: 'text-red-500',
-    iconBg: 'bg-red-100',
-    caterer: 'Delish Eats Co.',
-    catererAvatar:
-      'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=100&h=100&fit=crop',
-    catererInitials: null,
-    dateLines: ['Dec 05,', '2023'],
-    guests: 200,
-    status: 'Viewed',
-  },
-  {
-    id: '#BB-2023-055',
-    eventType: 'Family Reunion',
-    eventIcon: Users,
-    iconColor: 'text-stone-500',
-    iconBg: 'bg-stone-100',
-    caterer: 'Multiple Caterers',
-    catererAvatar: null,
-    catererInitials: null,
-    isMultiple: true,
-    dateLines: ['Sep 15,', '2023'],
-    guests: 45,
-    status: 'Closed',
-  },
-];
+// Removed redundant mock data - using live Redux state
 
 // --- UTILS ---
-const getStatusStyles = (status: any) => {
+const getStatusStyles = (status: string) => {
   switch (status) {
-    case 'Responded':
+    case 'responded':
       return 'text-green-600 bg-green-50 border-green-200';
-    case 'Pending':
+    case 'sent':
       return 'text-[#ef9d2a] bg-orange-50 border-orange-200';
-    case 'Viewed':
+    case 'viewed':
       return 'text-blue-600 bg-blue-50 border-blue-200';
-    case 'Closed':
+    case 'closed':
       return 'text-stone-500 bg-stone-50 border-stone-200';
     default:
       return 'text-stone-500 bg-stone-50 border-stone-200';
   }
 };
 
-const getStatusDotColor = (status: any) => {
+const getStatusDotColor = (status: string) => {
   switch (status) {
-    case 'Responded':
+    case 'responded':
       return 'bg-green-500';
-    case 'Pending':
+    case 'sent':
       return 'bg-[#ef9d2a]';
-    case 'Viewed':
+    case 'viewed':
       return 'bg-blue-500';
-    case 'Closed':
+    case 'closed':
       return 'bg-stone-400';
     default:
       return 'bg-stone-400';
   }
 };
 
-// --- MAIN COMPONENT ---
+const getEventIcon = (type: string) => {
+  if (type.toLowerCase().includes('wedding')) return PartyPopper;
+  if (type.toLowerCase().includes('birthday')) return Cake;
+  if (type.toLowerCase().includes('corporate')) return Briefcase;
+  return Users;
+};
+
 export default function MyEnquiriesPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const dispatch = useAppDispatch();
+  const { myEnquiries: enquiries, isLoading } = useAppSelector(state => state.enquiry);
+
+  React.useEffect(() => {
+    dispatch(fetchMyEnquiries());
+  }, [dispatch]);
+
+  const stats = [
+    { label: 'SENT', value: enquiries.length.toString(), icon: Send, color: 'text-blue-500', bg: 'bg-blue-50' },
+    { label: 'RESPONSES', value: enquiries.filter(e => e.status === 'responded').length.toString(), icon: MessageSquare, color: 'text-orange-500', bg: 'bg-orange-50' },
+    { label: 'CLOSED', value: enquiries.filter(e => e.status === 'closed').length.toString(), icon: Archive, color: 'text-slate-500', bg: 'bg-slate-50' },
+  ];
+
+  const filteredEnquiries = enquiries.filter(e => 
+    e.eventType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (typeof e.caterer === 'object' && e.caterer?.businessName.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   return (
     <div className="w-full animate-in fade-in duration-500">
@@ -148,8 +106,8 @@ export default function MyEnquiriesPage() {
       </div>
 
       {/* 4 Stats Cards Layer */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
-        {STATS.map((stat, idx) => {
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-10">
+        {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
             <div
@@ -249,20 +207,38 @@ export default function MyEnquiriesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
-            {MOCK_ENQUIRIES.map((enquiry, idx) => {
-              const EventIcon = enquiry.eventIcon;
+            {isLoading ? (
+              <tr>
+                <td colSpan={7} className="py-20 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="w-8 h-8 text-[#ef9d2a] animate-spin" />
+                    <p className="text-stone-400 font-bold">Fetching your enquiries...</p>
+                  </div>
+                </td>
+              </tr>
+            ) : filteredEnquiries.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="py-20 text-center">
+                  <p className="text-stone-400 font-medium italic">No enquiries found matched your criteria.</p>
+                </td>
+              </tr>
+            ) : filteredEnquiries.map((enquiry, idx) => {
+              const EventIcon = getEventIcon(enquiry.eventType);
+              const caterer = typeof enquiry.caterer === 'object' ? enquiry.caterer : null;
+              const eventDate = new Date(enquiry.eventDate);
+
               return (
-                <tr key={idx} className="hover:bg-stone-50/50 transition-colors group">
+                <tr key={enquiry._id || idx} className="hover:bg-stone-50/50 transition-colors group">
                   {/* Reference */}
                   <td className="py-5 px-8 whitespace-nowrap">
-                    <span className="text-sm font-bold text-stone-400">{enquiry.id}</span>
+                    <span className="text-sm font-bold text-stone-400">#{(enquiry._id || '').slice(-6).toUpperCase()}</span>
                   </td>
 
                   {/* Event Type */}
                   <td className="py-5 px-6 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-10 h-10 rounded-full ${enquiry.iconBg} ${enquiry.iconColor} flex items-center justify-center shadow-sm`}
+                        className={`w-10 h-10 rounded-full bg-orange-100 text-[#ef9d2a] flex items-center justify-center shadow-sm`}
                       >
                         <EventIcon className="w-5 h-5" />
                       </div>
@@ -275,23 +251,11 @@ export default function MyEnquiriesPage() {
                   {/* Caterer */}
                   <td className="py-5 px-6 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      {!enquiry.isMultiple ? (
-                        enquiry.catererAvatar ? (
-                          <img
-                            src={enquiry.catererAvatar}
-                            alt={enquiry.caterer}
-                            className="w-10 h-10 rounded-full object-cover border border-stone-200"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-stone-100 text-stone-500 flex items-center justify-center font-bold text-sm border border-stone-200">
-                            {enquiry.catererInitials}
-                          </div>
-                        )
-                      ) : null}
-                      <span
-                        className={`text-[15px] font-bold ${enquiry.isMultiple ? 'text-stone-400 italic' : 'text-stone-700'}`}
-                      >
-                        {enquiry.caterer}
+                      <div className="w-10 h-10 rounded-full bg-stone-100 text-stone-500 flex items-center justify-center font-bold text-sm border border-stone-200">
+                        {caterer?.businessName?.charAt(0) || 'C'}
+                      </div>
+                      <span className="text-[15px] font-bold text-stone-700">
+                        {caterer?.businessName || 'Multiple'}
                       </span>
                     </div>
                   </td>
@@ -299,14 +263,14 @@ export default function MyEnquiriesPage() {
                   {/* Event Date */}
                   <td className="py-5 px-6 whitespace-nowrap">
                     <div className="flex flex-col text-sm font-medium text-stone-600">
-                      <span>{enquiry.dateLines[0]}</span>
-                      <span>{enquiry.dateLines[1]}</span>
+                      <span>{eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                      <span>{eventDate.getFullYear()}</span>
                     </div>
                   </td>
 
                   {/* Guests */}
                   <td className="py-5 px-6 whitespace-nowrap text-center">
-                    <span className="text-[15px] font-medium text-stone-900">{enquiry.guests}</span>
+                    <span className="text-[15px] font-medium text-stone-900">{enquiry.guestCount}</span>
                   </td>
 
                   {/* Status */}
@@ -317,13 +281,13 @@ export default function MyEnquiriesPage() {
                       <div
                         className={`w-2 h-2 rounded-full ${getStatusDotColor(enquiry.status)}`}
                       ></div>
-                      <span className="text-xs font-black tracking-wide">{enquiry.status}</span>
+                      <span className="text-xs font-black tracking-wide uppercase">{enquiry.status}</span>
                     </div>
                   </td>
 
                   <td className="py-5 px-8 whitespace-nowrap text-center">
                     <Link
-                      to={`/dashboard/enquiries/${enquiry.id.replace('#', '')}`}
+                      to={`/dashboard/enquiries/${enquiry._id}`}
                       className="w-10 h-10 rounded-full bg-white border border-stone-200 flex items-center justify-center text-stone-400 hover:text-[#ef9d2a] hover:border-[#ef9d2a] hover:bg-orange-50 mx-auto transition-all shadow-sm"
                     >
                       <Eye className="w-5 h-5" />

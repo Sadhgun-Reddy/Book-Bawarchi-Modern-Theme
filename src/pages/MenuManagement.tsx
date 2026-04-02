@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchMenu, updateDish } from '../store/slices/menuSlice';
-import { Dish } from '../types';
+import { Menu } from '../types';
 import { CheckCircle2, Plus, Utensils, Edit2, Image as ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SkeletonCard from '../components/common/SkeletonCard';
@@ -9,12 +9,16 @@ import SkeletonCard from '../components/common/SkeletonCard';
 // --- COMPONENTS ---
 
 interface MenuPackageCardProps {
-  menu: Dish;
+  menu: Menu;
   onToggle: (id: string) => void;
 }
 
 const MenuPackageCard: React.FC<MenuPackageCardProps> = ({ menu, onToggle }) => {
-  const isDraft = menu.status === 'draft';
+  const isDraft = menu.approvalStatus === 'pending';
+  const firstItem = menu.items?.[0];
+  const itemPrice = firstItem?.price || 0;
+  const itemCount = menu.items?.length || 0;
+  const mainImage = firstItem?.imageUrl || '';
 
   return (
     <div
@@ -23,10 +27,10 @@ const MenuPackageCard: React.FC<MenuPackageCardProps> = ({ menu, onToggle }) => 
       {/* Top Absolute Badge */}
       <div className="absolute top-6 right-6 z-10">
         <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${isDraft ? 'bg-stone-100 text-stone-600' : 'bg-emerald-100 text-emerald-800'
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${menu.approvalStatus === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-600'
             }`}
         >
-          {menu.status === 'published' ? 'Published' : 'Draft'}
+          {menu.approvalStatus.charAt(0).toUpperCase() + menu.approvalStatus.slice(1)}
         </span>
       </div>
 
@@ -36,36 +40,30 @@ const MenuPackageCard: React.FC<MenuPackageCardProps> = ({ menu, onToggle }) => 
       >
         {/* Image 1 */}
         <div className="w-16 h-16 rounded-full border-4 border-white overflow-hidden shadow-sm z-30 bg-stone-100 flex items-center justify-center">
-          {menu.images[0] ? (
-            <img src={menu.images[0]} alt="Dish 1" className="w-full h-full object-cover" />
+          {mainImage ? (
+            <img src={mainImage} alt="Dish 1" className="w-full h-full object-cover" />
           ) : (
             <ImageIcon className="w-6 h-6 text-stone-300" />
           )}
         </div>
-        {/* Image 2 */}
-        <div className="w-16 h-16 rounded-full border-4 border-white overflow-hidden shadow-sm z-20 bg-stone-100 flex items-center justify-center">
-          {menu.images[1] ? (
-            <img src={menu.images[1]} alt="Dish 2" className="w-full h-full object-cover" />
-          ) : (
-            <ImageIcon className="w-6 h-6 text-stone-300" />
-          )}
-        </div>
-        {/* Count Indicator */}
-        {menu.additionalImagesCount > 0 ? (
-          <div className="w-16 h-16 rounded-full border-4 border-white overflow-hidden shadow-sm z-10 bg-stone-100 flex items-center justify-center">
-            <span className="text-xs font-bold text-stone-500">+{menu.additionalImagesCount}</span>
-          </div>
-        ) : (
-          <div className="w-16 h-16 rounded-full border-4 border-white overflow-hidden shadow-sm z-10 bg-stone-50 flex items-center justify-center"></div>
+        {/* Fillers for others if multiple items exist */}
+        {menu.items?.length > 1 && (
+           <div className="w-16 h-16 rounded-full border-4 border-white overflow-hidden shadow-sm z-20 bg-stone-100 flex items-center justify-center">
+             {menu.items[1].imageUrl ? (
+               <img src={menu.items[1].imageUrl} alt="Dish 2" className="w-full h-full object-cover" />
+             ) : (
+               <ImageIcon className="w-6 h-6 text-stone-300" />
+             )}
+           </div>
         )}
       </div>
 
       {/* Content Payload */}
       <div className="flex-1 mb-4">
         <span className="text-[#ef9d2a] text-[10px] font-black uppercase tracking-wider mb-1.5 block">
-          {menu.category}
+          {menu.cuisineType}
         </span>
-        <h3 className="text-xl font-bold text-stone-900 leading-tight mb-2">{menu.title}</h3>
+        <h3 className="text-xl font-bold text-stone-900 leading-tight mb-2">{menu.name}</h3>
         <p className="text-stone-500 text-sm line-clamp-2 leading-relaxed font-medium">
           {menu.description}
         </p>
@@ -75,11 +73,11 @@ const MenuPackageCard: React.FC<MenuPackageCardProps> = ({ menu, onToggle }) => 
       <div className="flex items-center gap-4 py-4 border-t border-stone-100 mb-4 mt-auto">
         <div className="flex items-center gap-1.5">
           <Utensils className="w-4 h-4 text-stone-400" />
-          <span className="text-sm font-bold text-stone-700">{menu.itemCount} Items</span>
+          <span className="text-sm font-bold text-stone-700">{itemCount} Items</span>
         </div>
         <div className="w-1 h-1 rounded-full bg-stone-300"></div>
         <div className="flex items-baseline gap-1">
-          <span className="text-base font-black text-[#ef9d2a]">${menu.pricePerPlate}</span>
+          <span className="text-base font-black text-[#ef9d2a]">${itemPrice}</span>
           <span className="text-xs text-stone-400 font-bold uppercase tracking-wide">/ plate</span>
         </div>
       </div>
@@ -92,13 +90,13 @@ const MenuPackageCard: React.FC<MenuPackageCardProps> = ({ menu, onToggle }) => 
             <input
               type="checkbox"
               className="sr-only peer"
-              checked={menu.isPublic}
-              onChange={() => onToggle(menu.id)}
+              checked={menu.isActive}
+              onChange={() => onToggle(menu._id || menu.id)}
             />
             <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ef9d2a]"></div>
           </label>
           <span className="text-xs font-bold text-stone-500 uppercase tracking-wide">
-            {menu.isPublic ? 'Public' : 'Hidden'}
+            {menu.isActive ? 'Active' : 'Private'}
           </span>
         </div>
 
@@ -140,24 +138,24 @@ const MenuManagement: React.FC = () => {
   }, [dispatch]);
 
   const handleTogglePublic = (menuId: string) => {
-    const targetMenu = menus.find((m: Dish) => m.id === menuId);
+    const targetMenu = menus.find((m: Menu) => (m._id || m.id) === menuId);
     if (!targetMenu) return;
 
-    const newIsPublic = !targetMenu.isPublic;
+    const newIsActive = !targetMenu.isActive;
 
     // Dispatch the thunk to update server and Redux State
     dispatch(
       updateDish({
         id: menuId,
         updates: {
-          isPublic: newIsPublic,
-          status: newIsPublic ? 'published' : 'draft',
+          isPublic: newIsActive,
+          isActive: newIsActive
         },
       })
     );
   };
 
-  const activeMenusCount = menus.filter((m) => m.status === 'published').length;
+  const activeMenusCount = menus.filter((m) => m.approvalStatus === 'approved').length;
 
   return (
     <div className="w-full">

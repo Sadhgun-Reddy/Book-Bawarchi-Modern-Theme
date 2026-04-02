@@ -1,15 +1,15 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import api from '../../services/api';
-import { AuthState, User } from '../../types';
+import { AuthState, User, Caterer } from '../../types';
 import { Urls } from '../../Urls';
 
-export const loginUser = createAsyncThunk<{ user: User; catererProfile?: any; token: string }, any>(
+export const loginUser = createAsyncThunk<{ user: User; catererProfile: Caterer | null; token: string }, any>(
   'auth/loginUser',
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await api.post(Urls.UserSignIn, credentials);
       if (!response.data.success) {
-        return rejectWithValue('Login failed');
+        return rejectWithValue(response.data.error || 'Login failed');
       }
       const token = response.data.token;
 
@@ -20,13 +20,12 @@ export const loginUser = createAsyncThunk<{ user: User; catererProfile?: any; to
       if (!profileRes.data.success) {
         return rejectWithValue('Failed to fetch profile');
       }
-      const userResponse = profileRes.data.data;
-      const user = userResponse.user || userResponse;
-      const catererProfile = userResponse.caterer || null;
+      const { user, caterer } = profileRes.data.data;
 
-      return { user, catererProfile, token };
+      return { user, catererProfile: caterer || null, token };
     } catch (error: any) {
       return rejectWithValue(
+        error.response?.data?.error ||
         error.response?.data?.message ||
         'Login failed. Please check your credentials and try again.'
       );
@@ -34,13 +33,13 @@ export const loginUser = createAsyncThunk<{ user: User; catererProfile?: any; to
   }
 );
 
-export const registerUser = createAsyncThunk<{ user: User; catererProfile?: any; token: string }, any>(
+export const registerUser = createAsyncThunk<{ user: User; catererProfile: Caterer | null; token: string }, any>(
   'auth/registerUser',
   async (userData, { rejectWithValue }) => {
     try {
       const response = await api.post(Urls.UserSignUp, userData);
       if (!response.data.success) {
-        return rejectWithValue('Registration failed');
+        return rejectWithValue(response.data.error || 'Registration failed');
       }
       const token = response.data.token;
 
@@ -51,13 +50,12 @@ export const registerUser = createAsyncThunk<{ user: User; catererProfile?: any;
       if (!profileRes.data.success) {
         return rejectWithValue('Failed to fetch profile');
       }
-      const userResponse = profileRes.data.data;
-      const user = userResponse.user || userResponse;
-      const catererProfile = userResponse.caterer || null;
+      const { user, caterer } = profileRes.data.data;
 
-      return { user, catererProfile, token };
+      return { user, catererProfile: caterer || null, token };
     } catch (error: any) {
       return rejectWithValue(
+        error.response?.data?.error ||
         error.response?.data?.message ||
         'Registration failed. Please check your details and try again.'
       );
@@ -65,13 +63,13 @@ export const registerUser = createAsyncThunk<{ user: User; catererProfile?: any;
   }
 );
 
-export const catererRegister = createAsyncThunk<{ user: User; catererProfile?: any; token: string }, any>(
+export const catererRegister = createAsyncThunk<{ user: User; catererProfile: Caterer | null; token: string }, any>(
   'auth/catererRegister',
   async (userData, { rejectWithValue }) => {
     try {
       const response = await api.post(Urls.CatererSignUp, userData);
       if (!response.data.success) {
-        return rejectWithValue('Caterer Registration failed');
+        return rejectWithValue(response.data.error || 'Caterer Registration failed');
       }
       const token = response.data.token;
 
@@ -82,13 +80,12 @@ export const catererRegister = createAsyncThunk<{ user: User; catererProfile?: a
       if (!profileRes.data.success) {
         return rejectWithValue('Failed to fetch profile');
       }
-      const userResponse = profileRes.data.data;
-      const user = userResponse.user || userResponse;
-      const catererProfile = userResponse.caterer || null;
+      const { user, caterer } = profileRes.data.data;
 
-      return { user, catererProfile, token };
+      return { user, catererProfile: caterer || null, token };
     } catch (error: any) {
       return rejectWithValue(
+        error.response?.data?.error ||
         error.response?.data?.message ||
         'Caterer registration failed. Please check your details and try again.'
       );
@@ -96,7 +93,7 @@ export const catererRegister = createAsyncThunk<{ user: User; catererProfile?: a
   }
 );
 
-export const fetchUserProfile = createAsyncThunk<{ user: User; catererProfile?: any }, void>(
+export const fetchUserProfile = createAsyncThunk<{ user: User; catererProfile: Caterer | null }, void>(
   'auth/fetchUserProfile',
   async (_, { rejectWithValue }) => {
     try {
@@ -104,13 +101,13 @@ export const fetchUserProfile = createAsyncThunk<{ user: User; catererProfile?: 
       if (!profileRes.data.success) {
         return rejectWithValue('Failed to fetch profile');
       }
-      const userResponse = profileRes.data.data;
-      const user = userResponse.user || userResponse;
-      const catererProfile = userResponse.caterer || null;
-      return { user, catererProfile };
+      const { user, caterer } = profileRes.data.data;
+      return { user, catererProfile: caterer || null };
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || 'Failed to fetch user profile.'
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        'Failed to fetch user profile.'
       );
     }
   }
@@ -147,7 +144,7 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ user: User; catererProfile?: any; token: string }>) => {
+      .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ user: User; catererProfile: Caterer | null; token: string }>) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
@@ -166,7 +163,7 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action: PayloadAction<{ user: User; catererProfile?: any; token: string }>) => {
+      .addCase(registerUser.fulfilled, (state, action: PayloadAction<{ user: User; catererProfile: Caterer | null; token: string }>) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
@@ -184,7 +181,7 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(catererRegister.fulfilled, (state, action: PayloadAction<{ user: User; catererProfile?: any; token: string }>) => {
+      .addCase(catererRegister.fulfilled, (state, action: PayloadAction<{ user: User; catererProfile: Caterer | null; token: string }>) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
@@ -202,7 +199,7 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchUserProfile.fulfilled, (state, action: PayloadAction<{ user: User; catererProfile?: any }>) => {
+      .addCase(fetchUserProfile.fulfilled, (state, action: PayloadAction<{ user: User; catererProfile: Caterer | null }>) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;

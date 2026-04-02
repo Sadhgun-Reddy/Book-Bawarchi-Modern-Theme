@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { fetchDonationById } from '../store/slices/donationSlice';
 import {
   ChevronLeft,
   MapPin,
@@ -12,24 +15,22 @@ import {
   Plus,
   Building2,
   CalendarClock,
+  Loader2,
 } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+
 
 // --- MOCK DATA ---
-const MOCK_REQUEST = {
-  id: '#REQ-2103',
-  status: 'LOOKING FOR DONOR',
-  createdAt: 'Oct 24, 2026',
-  location: 'Community Center, Block B, 124 Unity St.',
-  distance: '2.5 km away',
-  beneficiaries: '25 People',
-  beneficiaryTypes: 'Families & Children',
-  dietaryNeeds: 'Vegetarian Only',
-  dietaryTags: ['NO MEAT', 'NO NUTS'],
-  urgency: 'High Priority',
-  urgencyTime: 'Within 24hrs',
-  currentStage: 3, // 1: Received, 2: Verified, 3: Matching, 4: Fulfilled
+// Fallback metadata for missing fields in basic Donation model
+const DEFAULT_METADATA = {
+  beneficiaries: 'Community Need',
+  beneficiaryTypes: 'Open Request',
+  dietaryNeeds: 'Standard',
+  dietaryTags: ['UTGENT'],
+  urgency: 'Standard Priority',
+  urgencyTime: 'Flexible',
+  currentStage: 2, 
 };
+
 
 const MOCK_OFFERS = [
   {
@@ -350,10 +351,58 @@ const ActivityLog = ({ log }: any) => {
 // --- MAIN PAGE ---
 
 export default function FoodRequestDetailPage() {
-  const { id = '2103' } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const dispatch = useAppDispatch();
+  const { currentDonation, isLoading, error } = useAppSelector((state) => state.donation);
 
-  // In a real app, use the ID to fetch data. Using mock for layout design.
-  const request = { ...MOCK_REQUEST, id: `#REQ-${id}` };
+  React.useEffect(() => {
+    if (id) {
+      dispatch(fetchDonationById(id));
+    }
+  }, [dispatch, id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fcfaf8]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-[#ef9d2a] animate-spin mx-auto mb-4" />
+          <p className="font-bold text-stone-500">Loading donation details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !currentDonation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fcfaf8]">
+        <div className="text-center p-8 bg-white rounded-[2rem] shadow-sm border border-stone-100 max-w-md w-full">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-black text-stone-900 tracking-tight mb-2">Request Not Found</h2>
+          <p className="text-stone-500 font-medium mb-6">{error || "This food request doesn't exist or has been removed."}</p>
+          <Link to="/caterer/requests" className="w-full inline-flex justify-center py-3 px-6 rounded-full bg-[#ef9d2a] text-white font-bold hover:bg-[#d98a1e] transition-colors">
+             Back to Requests
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Map backend donation to UI structure
+  const request = {
+    id: `#REQ-${currentDonation._id?.substring(0, 6).toUpperCase()}`,
+    status: currentDonation.status.toUpperCase(),
+    createdAt: new Date(currentDonation.createdAt).toLocaleDateString(),
+    location: currentDonation.pickupLocation,
+    distance: 'Nearby',
+    beneficiaries: DEFAULT_METADATA.beneficiaries,
+    beneficiaryTypes: DEFAULT_METADATA.beneficiaryTypes,
+    dietaryNeeds: currentDonation.foodType,
+    dietaryTags: [currentDonation.foodType?.toUpperCase() || 'GENERAL'],
+    urgency: DEFAULT_METADATA.urgency,
+    urgencyTime: DEFAULT_METADATA.urgencyTime,
+    currentStage: currentDonation.status === 'fulfilled' ? 4 : currentDonation.status === 'allocated' ? 3 : 2,
+  };
+
 
   return (
     <div className="min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30 p-4 sm:p-8 w-full   mx-auto flex flex-col pt-20 sm:pt-8">

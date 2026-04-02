@@ -59,6 +59,8 @@ const DishEditor: React.FC = () => {
           dietaryType,
           spiceLevel,
           ingredients,
+          images,
+          mainImageIndex,
         })
       ).unwrap();
 

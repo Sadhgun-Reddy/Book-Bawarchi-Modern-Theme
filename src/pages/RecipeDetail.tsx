@@ -15,9 +15,13 @@ import {
   Mail,
 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
-import { useAppSelector } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { fetchRecipeById } from '../store/slices/recipeSlice';
+import { Caterer } from '../types';
+import { Loader2 } from 'lucide-react';
 
 // --- TYPES ---
+
 export interface RecipeDetails {
   id: string;
   title: string;
@@ -326,20 +330,50 @@ const LeadGenCTA: React.FC<{ chefName: string }> = ({ chefName }) => {
 
 const RecipeDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const dispatch = useAppDispatch();
+  const { currentRecipe, isLoading, error } = useAppSelector((state) => state.recipe);
 
-  // Use app selector. Using `as any` state fallback since this is a UI migration phase
-  const recipeFromStore = useAppSelector((state: any) => state.menu?.items?.find((item: any) => item.id === id));
+  React.useEffect(() => {
+    if (id) {
+       dispatch(fetchRecipeById(id));
+    }
+  }, [dispatch, id]);
 
-  // Fallback to mock data for demonstration purposes. We'll show RECIPE_DATA regardless of id during static phase.
-  const data: RecipeDetails | undefined = recipeFromStore || RECIPE_DATA;
+  const data: RecipeDetails | undefined = currentRecipe ? {
+    ...RECIPE_DATA,
+    id: currentRecipe._id,
+    title: currentRecipe.title,
+    description: currentRecipe.content,
+    image: currentRecipe.images && currentRecipe.images.length > 0 
+        ? `http://localhost:5000/uploads/${currentRecipe.images[0]}` 
+        : RECIPE_DATA.image,
+    chef: {
+        ...RECIPE_DATA.chef,
+        name: typeof currentRecipe.caterer === 'object' ? (currentRecipe.caterer as Caterer).businessName : 'Community Chef',
+        avatar: typeof currentRecipe.caterer === 'object' && (currentRecipe.caterer as Caterer).profileImage 
+            ? `http://localhost:5000/uploads/${(currentRecipe.caterer as Caterer).profileImage}` 
+            : RECIPE_DATA.chef.avatar,
+    }
+  } : undefined;
 
-  if (!data) {
+  if (isLoading) {
+      return (
+          <div className="min-h-screen flex items-center justify-center bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif]">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 text-[#ef9d2a] animate-spin mx-auto mb-4" />
+              <p className="font-bold text-stone-500">Loading recipe...</p>
+            </div>
+          </div>
+      );
+  }
+
+  if (error || !data) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif]">
         <div className="text-center p-8 bg-white rounded-[2rem] shadow-sm border border-stone-100 max-w-md w-full">
           <ChefHat className="w-12 h-12 text-stone-300 mx-auto mb-4" />
           <h2 className="text-2xl font-black text-stone-900 tracking-tight mb-2">Recipe Not Found</h2>
-          <p className="text-stone-500 font-medium mb-6">The recipe you're looking for doesn't exist or has been removed.</p>
+          <p className="text-stone-500 font-medium mb-6">{error || "The recipe you're looking for doesn't exist or has been removed."}</p>
           <Link to="/recipes" className="w-full inline-flex justify-center py-3 px-6 rounded-full bg-[#ef9d2a] text-white font-bold hover:bg-[#d98a1e] transition-colors shadow-lg shadow-orange-500/20">
             Browse All Recipes
           </Link>
@@ -347,6 +381,7 @@ const RecipeDetailPage: React.FC = () => {
       </div>
     );
   }
+
 
   return (
     <div className="flex flex-col bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] text-stone-900 selection:bg-[#ef9d2a]/30">

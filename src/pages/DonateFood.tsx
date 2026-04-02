@@ -13,6 +13,8 @@ import {
   Wheat,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAppDispatch } from '../hooks/redux';
+import { createDonation } from '../store/slices/donationSlice';
 
 const DonationLifecycle = () => {
   const steps = [
@@ -206,12 +208,31 @@ export default function DonateFoodPage() {
     { value: 'evening', label: 'Evening (4 PM - 8 PM)' },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const dispatch = useAppDispatch();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting donation:', { ...formData, file });
-    // Mock successful submission
-    alert('Donation Submitted Successfully! A representative will contact you shortly.');
-    navigate('/dashboard'); // or wherever appropriate
+    setIsSubmitting(true);
+    try {
+      const payload = {
+         foodType: formData.category,
+         quantity: formData.quantity,
+         pickupLocation: formData.address,
+         // Creating valid datetimes from string for backend
+         availabilityFrom: formData.date ? new Date(formData.date).toISOString() : new Date().toISOString(),
+         availabilityTo: formData.date ? new Date(new Date(formData.date).getTime() + 86400000).toISOString() : new Date(new Date().getTime() + 86400000).toISOString(),
+         specialInstructions: formData.description
+      };
+      
+      await dispatch(createDonation(payload)).unwrap();
+      alert('Donation Submitted Successfully! A representative will contact you shortly.');
+      navigate('/food-requests'); // Redirect to food listings
+    } catch (err: any) {
+      alert(err.message || 'Error submitting donation');
+    } finally {
+       setIsSubmitting(false);
+    }
   };
 
   return (
@@ -370,9 +391,10 @@ export default function DonateFoodPage() {
 
               <button
                 type="submit"
-                className="w-full rounded-2xl bg-[#ef9d2a] hover:bg-[#d98a1e] text-white font-black text-lg py-5 shadow-xl shadow-orange-500/20 active:translate-y-0.5 transition-all flex justify-center items-center gap-2"
+                disabled={isSubmitting}
+                className="w-full rounded-2xl bg-[#ef9d2a] hover:bg-[#d98a1e] disabled:bg-[#ef9d2a]/50 text-white font-black text-lg py-5 shadow-xl shadow-orange-500/20 active:translate-y-0.5 transition-all flex justify-center items-center gap-2"
               >
-                Submit Donation
+                {isSubmitting ? 'Submitting...' : 'Submit Donation'}
               </button>
             </div>
           </form>

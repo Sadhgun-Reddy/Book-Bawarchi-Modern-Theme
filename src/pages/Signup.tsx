@@ -350,6 +350,15 @@ const SignUpPage = () => {
                       Log in
                     </Link>
                   </p>
+                  <p className="mt-2 text-center text-sm font-medium text-stone-600">
+                    Want to register as a caterer?{' '}
+                    <Link
+                      to="/caterer-register"
+                      className="font-bold text-[#ef9d2a] hover:underline"
+                    >
+                      Click here
+                    </Link>
+                  </p>
                 </div>
               </form>
             </div>

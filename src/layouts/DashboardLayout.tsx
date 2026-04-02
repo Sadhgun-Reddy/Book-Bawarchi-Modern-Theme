@@ -13,6 +13,8 @@ import {
   ChevronRight,
   ChevronDown,
 } from 'lucide-react';
+import { useAppDispatch } from '../hooks/redux';
+import { logout } from '../store/slices/authSlice';
 
 interface LayoutProps {
   children?: React.ReactNode;
@@ -21,6 +23,12 @@ interface LayoutProps {
 const DashboardLayout: React.FC<LayoutProps> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -89,7 +97,10 @@ const DashboardLayout: React.FC<LayoutProps> = ({ children }) => {
 
           {/* Bottom Actions */}
           <div className="border-t border-stone-100 pt-6">
-            <button className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-stone-600 transition-colors hover:bg-red-50 hover:text-red-600">
+            <button 
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-stone-600 transition-colors hover:bg-red-50 hover:text-red-600"
+            >
               <LogOut className="w-5 h-5" />
               <span className="text-sm font-medium">Logout</span>
             </button>

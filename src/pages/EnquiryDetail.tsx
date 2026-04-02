@@ -12,102 +12,14 @@ import {
   Clock,
   MoreVertical,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { fetchEnquiryById } from '../store/slices/enquirySlice';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { Caterer, User } from '../types';
 
 // --- MOCK DATA ---
-const MOCK_ENQUIRY = {
-  id: 'ENQ-2023-104',
-  status: 'IN PROGRESS',
-  guestCount: '350 Pax',
-  budget: '₹450 - ₹600 / head',
-  cuisine: 'North Indian, Continental',
-  date: 'Oct 24, 2024',
-  location: 'Grand Hyatt, Mumbai',
-  type: 'Wedding Sangeet',
-  notes:
-    'Looking for a premium setup with live counters. Need special focus on the dessert section. No beef or pork on the menu.',
-  attachments: [
-    {
-      id: 1,
-      name: 'Venue_Floorplan.pdf',
-      size: '2.4 MB',
-      type: 'pdf',
-      icon: FileText,
-      color: 'text-blue-500',
-      bg: 'bg-blue-50',
-    },
-    {
-      id: 2,
-      name: 'Reference_Decor.jpg',
-      size: '1.1 MB',
-      type: 'image',
-      icon: ImageIcon,
-      color: 'text-emerald-500',
-      bg: 'bg-emerald-50',
-    },
-  ],
-};
-
-const MOCK_QUOTES = [
-  {
-    id: 'Q-01',
-    caterer: 'Royal Feast Caterers',
-    price: '₹5,50,000',
-    perHead: '₹550 / head',
-    message:
-      'Hi Priya, we would love to cater your Sangeet! We have attached our premium North Indian & Continental fusion menu. This includes 4 live counters and a specialized dessert bar as requested.',
-    time: 'Today, 2:30 PM',
-    isNew: true,
-  },
-  {
-    id: 'Q-02',
-    caterer: 'Spice Route Kitchen',
-    price: '₹4,80,000',
-    perHead: '₹480 / head',
-    message:
-      'Hello! I have reviewed your requirements. We can definitely manage the Sangeet within your budget. Please check out the attached proposal for the menu breakdown.',
-    time: 'Yesterday, 4:15 PM',
-    isNew: false,
-  },
-];
-
-const MOCK_ACTIVITY = [
-  {
-    id: 1,
-    title: 'Quote Received',
-    auth: 'Royal Feast Caterers',
-    time: 'Today, 2:30 PM',
-    type: 'success',
-  },
-  {
-    id: 2,
-    title: 'Caterer Viewed Enquiry',
-    auth: 'Spice Route Kitchen',
-    time: 'Yesterday, 8:00 PM',
-    type: 'neutral',
-  },
-  {
-    id: 3,
-    title: 'Quote Received',
-    auth: 'Spice Route Kitchen',
-    time: 'Yesterday, 4:15 PM',
-    type: 'success',
-  },
-  {
-    id: 4,
-    title: 'Enquiry Broadcasted',
-    auth: 'System',
-    time: 'Oct 15, 10:00 AM',
-    type: 'neutral',
-  },
-  {
-    id: 5,
-    title: 'Enquiry Created',
-    auth: 'Priya Sharma',
-    time: 'Oct 15, 09:45 AM',
-    type: 'neutral',
-  },
-];
+// Removed mock data - using live Redux state
 
 const STEPS = [
   { id: 1, label: 'Reviewing', status: 'completed' },
@@ -118,19 +30,27 @@ const STEPS = [
 
 // --- SUB-COMPONENTS ---
 
-const ProgressStepper = ({ steps }: any) => {
+const ProgressStepper = ({ status }: any) => {
+  const steps = [
+    { id: 1, label: 'Sent', status: status === 'sent' ? 'active' : 'completed' },
+    { id: 2, label: 'Viewed', status: status === 'viewed' ? 'active' : (['responded', 'closed'].includes(status) ? 'completed' : 'upcoming') },
+    { id: 3, label: 'Responded', status: status === 'responded' ? 'active' : (status === 'closed' ? 'completed' : 'upcoming') },
+    { id: 4, label: 'Closed', status: status === 'closed' ? 'active' : 'upcoming' },
+  ];
+
+  const progressMap: any = { sent: '0%', viewed: '33%', responded: '66%', closed: '100%' };
+
   return (
     <div className="w-full py-6">
       <div className="flex items-center justify-between relative">
-        {/* Connecting Line String */}
         <div className="absolute left-[10%] right-[10%] top-1/2 -translate-y-1/2 h-1 bg-slate-200 rounded-full z-0 hidden sm:block">
           <div
             className="h-full bg-[#ef9d2a] rounded-full transition-all duration-500"
-            style={{ width: '33%' }}
+            style={{ width: progressMap[status] || '0%' }}
           ></div>
         </div>
 
-        {steps.map((step: any, idx: any) => (
+        {steps.map((step: any) => (
           <div
             key={step.id}
             className="relative z-10 flex flex-col items-center gap-2 bg-[#fcfaf8] sm:bg-transparent px-2"
@@ -161,94 +81,48 @@ const ProgressStepper = ({ steps }: any) => {
   );
 };
 
-const EnquirySummary = ({ data }: any) => (
-  <div className="bg-white rounded-[1.5rem] p-6 sm:p-8 shadow-sm border border-transparent flex flex-col gap-6">
-    {/* Header */}
-    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-      <h2 className="text-xl font-black text-stone-900 tracking-tight">Enquiry Summary</h2>
-      <button className="text-[#ef9d2a] text-sm font-bold hover:text-[#d98a1e] transition-colors">
-        View Full Request
-      </button>
-    </div>
+const EnquirySummary = ({ data }: any) => {
+  const eventDate = new Date(data.eventDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  
+  return (
+    <div className="bg-white rounded-[1.5rem] p-6 sm:p-8 shadow-sm border border-transparent flex flex-col gap-6">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <h2 className="text-xl font-black text-stone-900 tracking-tight">Enquiry Summary</h2>
+      </div>
 
-    {/* Data Grid */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div className="flex flex-col gap-1">
-        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-          Event Type
-        </span>
-        <span className="text-base font-bold text-stone-900">{data.type}</span>
-      </div>
-      <div className="flex flex-col gap-1">
-        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-          Guest Count
-        </span>
-        <span className="text-base font-bold text-stone-900">{data.guestCount}</span>
-      </div>
-      <div className="flex flex-col gap-1">
-        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-          Budget Config
-        </span>
-        <span className="text-base font-bold text-stone-900">{data.budget}</span>
-      </div>
-      <div className="flex flex-col gap-1">
-        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Date</span>
-        <span className="text-base font-bold text-stone-900">{data.date}</span>
-      </div>
-      <div className="flex flex-col gap-1 sm:col-span-2">
-        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-          Cuisine Requirements
-        </span>
-        <span className="text-base font-bold text-stone-900">{data.cuisine}</span>
-      </div>
-    </div>
-
-    {/* Notes Layout */}
-    <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
-      <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-        Additional Notes
-      </span>
-      <div className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-medium text-slate-600 leading-relaxed border border-slate-100">
-        "{data.notes}"
-      </div>
-    </div>
-
-    {/* Attachments Row */}
-    {data.attachments && data.attachments.length > 0 && (
-      <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
-        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-          Attachments ({data.attachments.length})
-        </span>
-        <div className="flex flex-wrap gap-3">
-          {data.attachments.map((file: any) => {
-            const Icon = file.icon;
-            return (
-              <div
-                key={file.id}
-                className="flex items-center gap-3 p-3 pr-4 rounded-xl border border-slate-200 hover:border-[#ef9d2a]/30 hover:bg-orange-50/20 transition-all cursor-pointer group"
-              >
-                <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${file.bg} ${file.color}`}
-                >
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-stone-900 group-hover:text-[#ef9d2a] transition-colors">
-                    {file.name}
-                  </span>
-                  <span className="text-xs font-medium text-slate-400">{file.size}</span>
-                </div>
-                <button className="ml-2 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-stone-900 transition-colors">
-                  <Download className="w-4 h-4" />
-                </button>
-              </div>
-            );
-          })}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
+            Event Type
+          </span>
+          <span className="text-base font-bold text-stone-900">{data.eventType}</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
+            Guest Count
+          </span>
+          <span className="text-base font-bold text-stone-900">{data.guestCount} PAX</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
+            Status
+          </span>
+          <span className="text-base font-bold text-[#ef9d2a] uppercase">{data.status}</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Date</span>
+          <span className="text-base font-bold text-stone-900">{eventDate}</span>
+        </div>
+        <div className="flex flex-col gap-1 sm:col-span-2">
+          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
+            Reference ID
+          </span>
+          <span className="text-base font-bold text-stone-900">#{(data._id || '').toUpperCase()}</span>
         </div>
       </div>
-    )}
-  </div>
-);
+    </div>
+  );
+};
 
 const QuoteCard = ({ quote }: any) => (
   <div
@@ -352,80 +226,105 @@ const AssignedAgent = () => (
 // --- MAIN PAGE ---
 
 export default function EnquiryDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const dispatch = useAppDispatch();
+  const { currentEnquiry, isLoading, error } = useAppSelector(state => state.enquiry);
+
+  React.useEffect(() => {
+    if (id) {
+      dispatch(fetchEnquiryById(id));
+    }
+  }, [dispatch, id]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full min-h-screen bg-[#fcfaf8] flex flex-col items-center justify-center p-6">
+        <Loader2 className="w-12 h-12 text-[#ef9d2a] animate-spin mb-4" />
+        <p className="text-stone-500 font-black tracking-tight">Loading enquiry details...</p>
+      </div>
+    );
+  }
+
+  if (error || !currentEnquiry) {
+    return (
+      <div className="w-full min-h-screen bg-[#fcfaf8] flex flex-col items-center justify-center p-6">
+        <div className="bg-red-50 text-red-500 p-4 rounded-2xl mb-4">
+          <AlertCircle className="w-12 h-12" />
+        </div>
+        <h2 className="text-2xl font-black text-stone-900 mb-2">Error Loading Enquiry</h2>
+        <p className="text-stone-500 mb-6">{error || 'Enquiry not found.'}</p>
+        <Link to="/dashboard/enquiries" className="px-8 py-3 bg-[#ef9d2a] text-white rounded-full font-bold">
+          Back to Enquiries
+        </Link>
+      </div>
+    );
+  }
+
+  const caterer = typeof currentEnquiry.caterer === 'object' ? currentEnquiry.caterer as Caterer : null;
+
   return (
     <div className="w-full min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30 pb-24 animate-in fade-in duration-500">
-      {/* Minimal Dashboard Layout Wrapper Assumption */}
       <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 pl-4 ">
-        {/* --- 1. Top Header Array --- */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-2">
           <div className="flex flex-col gap-3">
-            {/* Breadcrumbs */}
             <div className="flex items-center gap-2 text-sm font-bold text-slate-400">
-              <Link
-                to="/dashboard/enquiries"
-                className="hover:text-stone-900 transition-colors flex items-center gap-1"
-              >
+              <Link to="/dashboard/enquiries" className="hover:text-stone-900 transition-colors flex items-center gap-1">
                 <ChevronLeft className="w-4 h-4" />
                 Enquiries
               </Link>
               <span>/</span>
-              <span className="text-stone-600 font-black">{MOCK_ENQUIRY.id}</span>
+              <span className="text-stone-600 font-black">#{currentEnquiry._id?.slice(-8).toUpperCase()}</span>
             </div>
 
             <div className="flex items-center gap-4">
               <h1 className="text-3xl md:text-4xl font-black text-stone-900 tracking-tight">
-                {MOCK_ENQUIRY.type}
+                {currentEnquiry.eventType}
               </h1>
-              <div className="hidden sm:flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-black tracking-widest border border-blue-200">
-                {MOCK_ENQUIRY.status}
+              <div className="hidden sm:flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-black tracking-widest border border-blue-200 uppercase">
+                {currentEnquiry.status}
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <button className="flex-1 md:flex-none h-12 px-6 rounded-full border-2 border-slate-200 hover:border-slate-300 bg-white text-slate-600 font-bold text-sm transition-colors">
-              Edit Details
-            </button>
             <button className="flex-1 md:flex-none h-12 px-6 rounded-full bg-[#ef9d2a] hover:bg-[#d98a1e] text-white font-black text-sm transition-all shadow-md shadow-orange-500/20 active:scale-95 flex items-center justify-center gap-2">
-              <Check className="w-4 h-4" strokeWidth={3} />
-              Mark as Closed
+                <Check className="w-4 h-4" strokeWidth={3} />
+                Update Status
             </button>
           </div>
         </div>
 
-        {/* --- 2. Structural Split Layout --- */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8 mt-6">
-          {/* LEFT PANE (Core Flow) */}
           <div className="xl:col-span-2 flex flex-col gap-6 lg:gap-8">
-            {/* Stepper Extracted */}
-            <ProgressStepper steps={STEPS} />
+            <ProgressStepper status={currentEnquiry.status} />
+            <EnquirySummary data={currentEnquiry} />
 
-            {/* Summary Block */}
-            <EnquirySummary data={MOCK_ENQUIRY} />
-
-            {/* Responses/Quotes Stream */}
-            <div className="flex flex-col gap-6 mt-4">
-              <div className="flex items-center justify-between px-2">
-                <h3 className="text-xl font-black text-stone-900 tracking-tight">
-                  Caterer Responses
-                </h3>
-                <span className="text-sm font-bold text-[#ef9d2a] px-3 py-1 bg-orange-50 rounded-full">
-                  {MOCK_QUOTES.length} Quotes Received
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-6">
-                {MOCK_QUOTES.map((quote) => (
-                  <QuoteCard key={quote.id} quote={quote} />
-                ))}
+            <div className="bg-white rounded-[1.5rem] p-8 shadow-sm border border-transparent">
+              <h3 className="text-xl font-black text-stone-900 mb-6">Conversation with {caterer?.businessName || 'Caterer'}</h3>
+              <div className="bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-300 text-center">
+                 <p className="text-slate-400 font-medium">No messages yet. Start the conversation to finalize your booking.</p>
+                 <button className="mt-4 px-6 py-2 bg-[#ef9d2a] text-white rounded-full font-bold text-sm">Send Message</button>
               </div>
             </div>
           </div>
 
-          {/* RIGHT PANE (Sidebar/Logs) */}
           <div className="col-span-1 pt-6 xl:pt-24">
-            <ActivityHistory log={MOCK_ACTIVITY} />
-            <AssignedAgent />
+             <div className="bg-white rounded-[1.5rem] p-6 shadow-sm border border-transparent">
+                <h3 className="text-lg font-black text-stone-900 mb-4">Caterer Info</h3>
+                {caterer ? (
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center font-bold text-[#ef9d2a]">
+                      {caterer.businessName.charAt(0)}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-stone-900">{caterer.businessName}</span>
+                      <span className="text-xs text-stone-400">{caterer.specialties.slice(0, 2).join(', ')}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-stone-400 text-sm">General Enquiry</p>
+                )}
+             </div>
           </div>
         </div>
       </div>

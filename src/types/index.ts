@@ -1,28 +1,42 @@
 export interface User {
     id: string;
+    _id?: string;
     name: string;
     email: string;
-    role: 'admin' | 'caterer' | 'user' | 'customer';
-    [key: string]: any; // Catch-all for other mock fields for now
+    phone?: string;
+    role: 'admin' | 'caterer' | 'customer';
+    profileImage?: string | null;
+    createdAt?: string;
 }
 
-export interface Dish {
-    id: string;
-    title: string;
-    category: string;
-    description: string;
-    itemCount: number;
-    pricePerPlate: number;
-    status: 'published' | 'draft';
-    isPublic: boolean;
-    images: (string | null)[];
-    additionalImagesCount: number;
-    cuisine?: string;
-    minQuantity?: number;
-    dietaryType?: 'veg' | 'non-veg' | 'vegan';
-    spiceLevel?: 'mild' | 'medium' | 'hot';
-    ingredients?: string[];
+export interface MenuItem {
+    _id?: string;
+    id?: string;
+    name: string;
+    description?: string;
+    price: number;
+    imageUrl?: string;
+    preparationTime?: string;
+    serves?: number;
+    dietaryTags?: string[];
 }
+
+export interface Menu {
+    _id: string;
+    id: string;
+    caterer: string | Caterer;
+    name: string;
+    description?: string;
+    cuisineType: string;
+    dietaryOptions: string[];
+    isActive: boolean;
+    approvalStatus: 'pending' | 'approved' | 'rejected';
+    items: MenuItem[];
+    createdAt: string;
+}
+
+// Temporary Alias for components still using 'Dish'
+export type Dish = Menu;
 
 export interface FoodRequest {
     id: string;
@@ -38,7 +52,7 @@ export interface FoodRequest {
 
 export interface AuthState {
     user: User | null;
-    catererProfile: any | null;
+    catererProfile: Caterer | null;
     token: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
@@ -46,7 +60,7 @@ export interface AuthState {
 }
 
 export interface MenuState {
-    items: Dish[];
+    items: Menu[];
     isLoading: boolean;
     error: string | null;
 }
@@ -65,10 +79,11 @@ export interface SupportTicket {
 export interface Caterer {
     _id: string;
     id: string;
-    user: {
+    user: string | {
         _id: string;
         name: string;
         email: string;
+        phone?: string;
     };
     businessName: string;
     description: string;
@@ -81,6 +96,7 @@ export interface Caterer {
     approvalStatus: 'pending' | 'approved' | 'rejected';
     profileViews: number;
     responseRate: number;
+    profileImage?: string | null;
     createdAt: string;
     updatedAt: string;
     adminRemarks?: string;
@@ -91,4 +107,69 @@ export interface CatererState {
     isLoading: boolean;
     error: string | null;
     count: number;
+}
+
+export interface Enquiry {
+    _id: string;
+    id: string;
+    user: string | User;
+    caterer?: string | Caterer;
+    eventType: string;
+    eventDate: string;
+    guestCount: number;
+    budget?: number;
+    specialRequirements?: string;
+    status: 'sent' | 'viewed' | 'responded' | 'closed';
+    respondedAt?: string;
+    createdAt: string;
+}
+
+export interface EnquiryState {
+  myEnquiries: Enquiry[];
+  catererEnquiries: Enquiry[];
+  currentEnquiry: Enquiry | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface Recipe {
+  _id: string;
+  id?: string;
+  caterer: string | Caterer;
+  title: string;
+  content: string;
+  images?: string[];
+  tags?: string[];
+  views: number;
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+  publishedAt?: string;
+  createdAt: string;
+}
+
+export interface RecipeState {
+  recipes: Recipe[];
+  currentRecipe: Recipe | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface Donation {
+  _id: string;
+  id?: string;
+  donor: string | User;
+  foodType: string;
+  quantity: string;
+  pickupLocation: string;
+  availabilityFrom: string;
+  availabilityTo: string;
+  status: 'available' | 'allocated' | 'fulfilled';
+  specialInstructions?: string;
+  createdAt: string;
+}
+
+export interface DonationState {
+  donations: Donation[];
+  currentDonation: Donation | null;
+  isLoading: boolean;
+  error: string | null;
 }
