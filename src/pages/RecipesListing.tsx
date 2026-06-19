@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChefHat, Search, Clock, Flame, Heart, ArrowRight, Filter, Loader2, AlertCircle } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { fetchRecipes } from '../store/slices/recipeSlice';
+import { fetchRecipes, fetchRecipesFromMenus } from '../store/slices/recipeSlice';
 import { Recipe, Caterer } from '../types';
 // MOCK CATEGORIES
 const CATEGORIES = ['All', 'Breakfast', 'Vegan', 'Desserts', 'Main Course', 'Snacks'];
@@ -136,21 +136,29 @@ const RecipesListing = () => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const dispatch = useAppDispatch();
-  const { recipes, isLoading, error } = useAppSelector((state) => state.recipe);
+  const { recipes, fromMenus, isLoading, error } = useAppSelector((state) => state.recipe);
 
   useEffect(() => {
     dispatch(fetchRecipes());
+    // Also fetch dishes from menus for user-facing content
+    dispatch(fetchRecipesFromMenus() as any);
   }, [dispatch]);
 
+  // Prefer recipes from menus (dishes) if available, otherwise fall back to recipes
+  const dataSource = (fromMenus && fromMenus.length > 0) ? fromMenus : recipes;
+
   // Filter for approved recipes only, then apply search/category
-  const filteredRecipes = recipes
+  const filteredRecipes = dataSource
     .filter((r) => r.approvalStatus === 'approved')
     .filter((recipe) => {
       const category = (recipe.tags && recipe.tags.length > 0) ? recipe.tags[0] : 'General';
       const matchesCategory = activeCategory === 'All' || category === activeCategory;
+      // Guard against possibly undefined title; fallback to empty string
+      const title = (recipe.title ?? '').toLowerCase();
+      const query = searchQuery?.toLowerCase?.() ?? '';
       const matchesSearch =
-        recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        category.toLowerCase().includes(searchQuery.toLowerCase());
+        title.includes(query) ||
+        category.toLowerCase().includes(query);
       return matchesCategory && matchesSearch;
     });
 

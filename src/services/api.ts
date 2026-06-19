@@ -28,19 +28,11 @@ api.interceptors.response.use(
     return response;
   },
   (error: any) => {
-    // Handle standard unauthorized errors globally
-    if (error.response && error.response.status === 401) {
-      console.error('Unauthorized access. Redirecting to login...');
-      // Redirect to login page for a better UX in SPA
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
-    } else if (error.response && error.response.status === 403) {
-      console.error('Forbidden access.');
-    } else if (error.response && error.response.status === 500) {
-      console.error('Server error.');
+    // Do not perform automatic navigation on auth errors.
+    // Let the caller decide how to handle 401/403/500.
+    if (error.response && (error.response.status === 401 || error.response.status === 403 || error.response.status === 500)) {
+      console.error(`HTTP ${error.response.status} error`, error.response.data?.error || error.response.data);
     }
-
     return Promise.reject(error);
   }
 );

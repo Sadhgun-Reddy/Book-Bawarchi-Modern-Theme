@@ -74,7 +74,8 @@ const LoginPage = () => {
       }
     } catch (err) {
       console.error('Login action failed:', err);
-      toast.error('Invalid credentials');
+      const message = typeof err === 'string' ? err : 'Login failed';
+      toast.error(message);
     }
   };
 

@@ -16,6 +16,7 @@ export interface MenuItem {
     description?: string;
     price: number;
     imageUrl?: string;
+    images?: string[];
     preparationTime?: string;
     serves?: number;
     dietaryTags?: string[];
@@ -151,6 +152,7 @@ export interface RecipeState {
   currentRecipe: Recipe | null;
   isLoading: boolean;
   error: string | null;
+  fromMenus?: Recipe[];
 }
 
 export interface Donation {

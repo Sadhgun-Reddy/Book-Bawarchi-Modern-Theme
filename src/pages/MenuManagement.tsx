@@ -18,7 +18,7 @@ const MenuPackageCard: React.FC<MenuPackageCardProps> = ({ menu, onToggle }) => 
   const firstItem = menu.items?.[0];
   const itemPrice = firstItem?.price || 0;
   const itemCount = menu.items?.length || 0;
-  const mainImage = firstItem?.imageUrl || '';
+  const mainImage = firstItem?.images?.[0] || '';
 
   return (
     <div
@@ -49,8 +49,8 @@ const MenuPackageCard: React.FC<MenuPackageCardProps> = ({ menu, onToggle }) => 
         {/* Fillers for others if multiple items exist */}
         {menu.items?.length > 1 && (
            <div className="w-16 h-16 rounded-full border-4 border-white overflow-hidden shadow-sm z-20 bg-stone-100 flex items-center justify-center">
-             {menu.items[1].imageUrl ? (
-               <img src={menu.items[1].imageUrl} alt="Dish 2" className="w-full h-full object-cover" />
+             {menu.items[1].images && menu.items[1].images[0] ? (
+               <img src={menu.items[1].images[0]} alt="Dish 2" className="w-full h-full object-cover" />
              ) : (
                <ImageIcon className="w-6 h-6 text-stone-300" />
              )}

@@ -12,4 +12,5 @@ export const Urls = {
     EnquiryApi: Url + "api/v1/enquiries",
     RecipeApi: Url + "api/v1/recipes",
     DonationApi: Url + "api/v1/food-support/donations",
+    RecipesFromMenus: Url + "api/v1/recipes/from-menus",
 }
