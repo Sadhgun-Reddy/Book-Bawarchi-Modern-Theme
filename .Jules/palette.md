@@ -1,0 +1,3 @@
+## 2024-03-20 - ARIA Labels for Mobile Menus
+**Learning:** Icon-only buttons used for critical navigation elements like mobile menus need proper ARIA attributes to be accessible. Just `aria-label` isn't enough; they also need `aria-expanded` and `aria-controls` to communicate their state and relationship to the screen reader.
+**Action:** When creating or reviewing mobile menus or collapsible sections, ensure the toggle button has `aria-expanded` mapped to its state, an `aria-controls` attribute pointing to the ID of the collapsible container, and a clear, dynamic `aria-label` (e.g., "Open menu" / "Close menu").

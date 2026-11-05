@@ -94,6 +94,9 @@ const Navbar: React.FC = () => {
                 <button
                     className="md:hidden p-2 text-stone-600 hover:text-stone-900 transition-colors"
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+                    aria-expanded={isMenuOpen}
+                    aria-controls="mobile-menu"
                 >
                     {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
@@ -101,7 +104,10 @@ const Navbar: React.FC = () => {
 
             {/* Mobile Navigation */}
             {isMenuOpen && (
-                <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-neutral-100 p-6 flex flex-col gap-6 animate-in slide-in-from-top-4 duration-200">
+                <div
+                    id="mobile-menu"
+                    className="md:hidden absolute top-full left-0 w-full bg-white border-b border-neutral-100 p-6 flex flex-col gap-6 animate-in slide-in-from-top-4 duration-200"
+                >
                     {navLinks.map((link) => (
                         <Link
                             key={link.path}
