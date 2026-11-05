@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search,
   MapPin,
@@ -278,6 +278,24 @@ const CatererCard: React.FC<{ caterer: UICaterer }> = ({ caterer }) => {
 
 // --- MAIN PAGE ---
 
+// Helper to map API data to UI interface
+const mapToUICaterer = (api: ApiCaterer): UICaterer => {
+  return {
+    id: api._id,
+    name: api.businessName,
+    rating: 4.5 + (Math.random() * 0.5), // Randomized high rating as static placeholder
+    reviews: Math.floor(Math.random() * 200) + 10, // Randomized review count as static placeholder
+    cuisine: api.specialties[0] || 'International',
+    distance: `${(Math.random() * 5 + 1).toFixed(1)} km`, // Static distance placeholder
+    eventTypes: api.specialties.length > 0 ? api.specialties : ['Catering'],
+    minOrder: '$500', // Static placeholder
+    pricePerPlate: '$20 - $50', // Static placeholder
+    image: `https://images.unsplash.com/photo-${api.specialties.includes('Wedding') ? '1519741497674-611481863552' : '1555244162-803834f70033'}?auto=format&fit=crop&q=80&w=800`,
+    isVerified: api.approvalStatus === 'approved',
+    tags: api.approvalStatus === 'approved' ? ['Verified', 'Top Rated'] : [],
+  };
+};
+
 export default function FindCaterersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const dispatch = useAppDispatch();
@@ -287,25 +305,10 @@ export default function FindCaterersPage() {
     dispatch(fetchCaterers());
   }, [dispatch]);
 
-  // Helper to map API data to UI interface
-  const mapToUICaterer = (api: ApiCaterer): UICaterer => {
-    return {
-      id: api._id,
-      name: api.businessName,
-      rating: 4.5 + (Math.random() * 0.5), // Randomized high rating as static placeholder
-      reviews: Math.floor(Math.random() * 200) + 10, // Randomized review count as static placeholder
-      cuisine: api.specialties[0] || 'International',
-      distance: `${(Math.random() * 5 + 1).toFixed(1)} km`, // Static distance placeholder
-      eventTypes: api.specialties.length > 0 ? api.specialties : ['Catering'],
-      minOrder: '$500', // Static placeholder
-      pricePerPlate: '$20 - $50', // Static placeholder
-      image: `https://images.unsplash.com/photo-${api.specialties.includes('Wedding') ? '1519741497674-611481863552' : '1555244162-803834f70033'}?auto=format&fit=crop&q=80&w=800`,
-      isVerified: api.approvalStatus === 'approved',
-      tags: api.approvalStatus === 'approved' ? ['Verified', 'Top Rated'] : [],
-    };
-  };
-
-  const uiCaterers = apiCaterers.map(mapToUICaterer);
+  // ⚡ Bolt: Memoize the mapping to prevent O(N) recalculation on every render
+  // This also stabilizes the mock data (e.g. Math.random) which was previously flickering
+  // on unrelated state changes (like typing in the search input).
+  const uiCaterers = useMemo(() => apiCaterers.map(mapToUICaterer), [apiCaterers]);
 
   const onResetFilters = () => {
     console.log('Reset filters');
