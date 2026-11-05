@@ -31,7 +31,7 @@ api.interceptors.response.use(
     // Do not perform automatic navigation on auth errors.
     // Let the caller decide how to handle 401/403/500.
     if (error.response && (error.response.status === 401 || error.response.status === 403 || error.response.status === 500)) {
-      console.error(`HTTP ${error.response.status} error`, error.response.data?.error || error.response.data);
+      console.error(`HTTP ${error.response.status} error`, 'An error occurred during the API request');
     }
     return Promise.reject(error);
   }
