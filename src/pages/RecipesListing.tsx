@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChefHat, Search, Clock, Flame, Heart, ArrowRight, Filter, Loader2, AlertCircle } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
@@ -147,20 +147,24 @@ const RecipesListing = () => {
   // Prefer recipes from menus (dishes) if available, otherwise fall back to recipes
   const dataSource = (fromMenus && fromMenus.length > 0) ? fromMenus : recipes;
 
-  // Filter for approved recipes only, then apply search/category
-  const filteredRecipes = dataSource
-    .filter((r) => r.approvalStatus === 'approved')
-    .filter((recipe) => {
+  // ⚡ Bolt: Memoize the filtered array to avoid O(N) filtering on every render.
+  // Also combined the sequential .filter() passes into a single pass (O(N) instead of O(2N)).
+  const filteredRecipes = useMemo(() => {
+    return dataSource.filter((recipe) => {
+      if (recipe.approvalStatus !== 'approved') return false;
+
       const category = (recipe.tags && recipe.tags.length > 0) ? recipe.tags[0] : 'General';
       const matchesCategory = activeCategory === 'All' || category === activeCategory;
-      // Guard against possibly undefined title; fallback to empty string
-      const title = (recipe.title ?? '').toLowerCase();
+
+      if (!matchesCategory) return false;
+
       const query = searchQuery?.toLowerCase?.() ?? '';
-      const matchesSearch =
-        title.includes(query) ||
-        category.toLowerCase().includes(query);
-      return matchesCategory && matchesSearch;
+      if (!query) return true;
+
+      const title = (recipe.title ?? '').toLowerCase();
+      return title.includes(query) || category.toLowerCase().includes(query);
     });
+  }, [dataSource, activeCategory, searchQuery]);
 
   return (
     <div className="flex flex-col bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] text-stone-900 selection:bg-[#ef9d2a]/30">
