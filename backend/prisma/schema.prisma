@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(uuid())
+  name           String
+  email          String          @unique
+  password       String
+  phone          String?
+  role           String          // 'admin', 'caterer', 'customer'
+  profileImage   String?
+  createdAt      DateTime        @default(now())
+
+  catererProfile Caterer?
+  enquiries      Enquiry[]       @relation("UserEnquiries")
+  donations      Donation[]
+  tickets        SupportTicket[]
+}
+
+model Caterer {
+  id              String       @id @default(uuid())
+  userId          String       @unique
+  user            User         @relation(fields: [userId], references: [id])
+  businessName    String
+  description     String
+  yearsExperience Int
+  specialties     String[]
+  certifications  String[]
+  kitchenAddress  String
+  serviceAreas    String[]
+  capacity        String
+  approvalStatus  String       @default("pending") // 'pending', 'approved', 'rejected'
+  profileViews    Int          @default(0)
+  responseRate    Int          @default(0)
+  profileImage    String?
+  adminRemarks    String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  menus           Menu[]
+  enquiries       Enquiry[]    @relation("CatererEnquiries")
+  recipes         Recipe[]
+}
+
+model Menu {
+  id              String       @id @default(uuid())
+  catererId       String
+  caterer         Caterer      @relation(fields: [catererId], references: [id])
+  name            String
+  description     String?
+  cuisineType     String
+  dietaryOptions  String[]
+  isActive        Boolean      @default(true)
+  approvalStatus  String       @default("pending") // 'pending', 'approved', 'rejected'
+  createdAt       DateTime     @default(now())
+
+  items           MenuItem[]
+}
+
+model MenuItem {
+  id              String       @id @default(uuid())
+  menuId          String
+  menu            Menu         @relation(fields: [menuId], references: [id])
+  name            String
+  description     String?
+  price           Float
+  imageUrl        String?
+  images          String[]
+  preparationTime String?
+  serves          Int?
+  dietaryTags     String[]
+}
+
+model Enquiry {
+  id                  String     @id @default(uuid())
+  userId              String
+  user                User       @relation("UserEnquiries", fields: [userId], references: [id])
+  catererId           String?
+  caterer             Caterer?   @relation("CatererEnquiries", fields: [catererId], references: [id])
+  eventType           String
+  eventDate           String
+  guestCount          Int
+  budget              Float?
+  specialRequirements String?
+  status              String     @default("sent") // 'sent', 'viewed', 'responded', 'closed'
+  respondedAt         DateTime?
+  createdAt           DateTime   @default(now())
+}
+
+model SupportTicket {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  subject     String
+  message     String
+  status      String   @default("Open") // 'Open', 'In Progress', 'Resolved', 'Closed'
+  priority    String   @default("Medium") // 'Low', 'Medium', 'High', 'Urgent'
+  category    String
+  createdAt   DateTime @default(now())
+}
+
+model Donation {
+  id                  String   @id @default(uuid())
+  donorId             String
+  donor               User     @relation(fields: [donorId], references: [id])
+  foodType            String
+  quantity            String
+  pickupLocation      String
+  availabilityFrom    String
+  availabilityTo      String
+  status              String   @default("available") // 'available', 'allocated', 'fulfilled'
+  specialInstructions String?
+  createdAt           DateTime @default(now())
+}
+
+model Recipe {
+  id              String   @id @default(uuid())
+  catererId       String
+  caterer         Caterer  @relation(fields: [catererId], references: [id])
+  title           String
+  content         String
+  images          String[]
+  tags            String[]
+  views           Int      @default(0)
+  approvalStatus  String   @default("pending") // 'pending', 'approved', 'rejected'
+  publishedAt     DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model Review {
+  id              String   @id @default(uuid())
+  authorName      String
+  authorAvatar    String?
+  rating          Int
+  text            String
+  targetId        String   // Caterer ID or other target
+  status          String   @default("published")
+  date            String
+}
