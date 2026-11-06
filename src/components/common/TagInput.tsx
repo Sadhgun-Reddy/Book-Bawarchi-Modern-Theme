@@ -1,4 +1,4 @@
-import React, { useState, KeyboardEvent, ChangeEvent } from 'react';
+import React, { useState, KeyboardEvent, ChangeEvent, useId } from 'react';
 import { X } from 'lucide-react';
 
 interface TagInputProps {
@@ -8,6 +8,7 @@ interface TagInputProps {
 
 const TagInput: React.FC<TagInputProps> = ({ tags, setTags }) => {
   const [inputValue, setInputValue] = useState('');
+  const inputId = useId();
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && inputValue.trim()) {
@@ -25,9 +26,12 @@ const TagInput: React.FC<TagInputProps> = ({ tags, setTags }) => {
 
   return (
     <div className="space-y-3">
-      <label className="ml-1 text-sm font-bold text-stone-700">Ingredients</label>
+      <label htmlFor={inputId} className="ml-1 text-sm font-bold text-stone-700">
+        Ingredients
+      </label>
       <div className="relative">
         <input
+          id={inputId}
           type="text"
           value={inputValue}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
@@ -45,8 +49,11 @@ const TagInput: React.FC<TagInputProps> = ({ tags, setTags }) => {
             >
               {tag}
               <button
+                type="button"
+                aria-label={`Remove ${tag}`}
+                title={`Remove ${tag}`}
                 onClick={() => removeTag(tag)}
-                className="flex h-5 w-5 items-center justify-center rounded-full bg-[#ef9d2a]/20 text-[#b57315] hover:bg-[#ef9d2a] hover:text-white transition-colors"
+                className="flex h-5 w-5 items-center justify-center rounded-full bg-[#ef9d2a]/20 text-[#b57315] hover:bg-[#ef9d2a] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ef9d2a] focus-visible:ring-offset-1"
               >
                 <X className="w-3 h-3" strokeWidth={3} />
               </button>
