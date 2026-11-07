@@ -220,6 +220,7 @@ const LoginPage = () => {
                     />
                     <button
                       type="button"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-[#ef9d2a] transition-colors p-1"
                     >
