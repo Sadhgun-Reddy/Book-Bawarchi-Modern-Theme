@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Search,
   Calendar,
@@ -72,16 +72,22 @@ export default function MyEnquiriesPage() {
     dispatch(fetchMyEnquiries());
   }, [dispatch]);
 
-  const stats = [
+  // ⚡ Bolt: Memoize the stats array to prevent O(N) recalculation on every render
+  const stats = useMemo(() => [
     { label: 'SENT', value: enquiries.length.toString(), icon: Send, color: 'text-blue-500', bg: 'bg-blue-50' },
     { label: 'RESPONSES', value: enquiries.filter(e => e.status === 'responded').length.toString(), icon: MessageSquare, color: 'text-orange-500', bg: 'bg-orange-50' },
     { label: 'CLOSED', value: enquiries.filter(e => e.status === 'closed').length.toString(), icon: Archive, color: 'text-slate-500', bg: 'bg-slate-50' },
-  ];
+  ], [enquiries]);
 
-  const filteredEnquiries = enquiries.filter(e => 
-    e.eventType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (typeof e.caterer === 'object' && e.caterer?.businessName.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // ⚡ Bolt: Memoize the filtered array to avoid O(N) string manipulation and filtering on every render.
+  // This prevents unnecessary recalculation when other state (like unrelated UI updates) changes.
+  const filteredEnquiries = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return enquiries.filter(e =>
+      e.eventType.toLowerCase().includes(query) ||
+      (typeof e.caterer === 'object' && e.caterer?.businessName.toLowerCase().includes(query))
+    );
+  }, [enquiries, searchQuery]);
 
   return (
     <div className="w-full animate-in fade-in duration-500">
