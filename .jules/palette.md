@@ -1,0 +1,3 @@
+## 2024-11-08 - Fixed Overlapping Hover Actions on Thumbnails
+**Learning:** Using a full-cover hover overlay for a secondary action (like "Remove") on an interactive thumbnail (like "Set as main") traps the click event, making the primary action impossible to trigger via mouse. Furthermore, using `<div>` elements for these complex interactions entirely prevents keyboard navigation.
+**Action:** When an interactive element has secondary actions, expose them as distinct, explicitly sized buttons (e.g., top-right corner) rather than full-cover overlays. Ensure all interactive components are built using semantic `<button>` elements with clear `focus-visible` styles and `aria-label`s.
