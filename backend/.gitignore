@@ -1,0 +1,8 @@
+dev.db
+src/**/*.js
+src/**/*.d.ts
+src/**/*.js.map
+.agents/
+.claude/
+.cursor/
+.devin/
