@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { registerUser, clearError } from '../store/slices/authSlice';
 import toast from 'react-hot-toast';
+import { getPasswordStrength } from '../utils/security';
 import {
   ChefHat,
   Menu,
@@ -92,6 +93,12 @@ const SignUpPage = () => {
     e.preventDefault();
     if (!formData.termsAccepted) {
       toast.error('Please accept the Terms & Conditions to proceed.');
+      return;
+    }
+
+    const strength = getPasswordStrength(formData.password);
+    if (strength.score < 3) {
+      toast.error('Please provide a stronger password (min 8 chars, 1 number).');
       return;
     }
 
