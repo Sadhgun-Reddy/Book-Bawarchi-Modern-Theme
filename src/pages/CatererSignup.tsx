@@ -21,6 +21,7 @@ import { catererRegister } from '../store/slices/authSlice';
 import api from '../services/api';
 import { Urls } from '../Urls';
 import toast from 'react-hot-toast';
+import { getPasswordStrength } from '../utils/security';
 
 // Reusing style constants for consistency
 const inputClasses = "w-full rounded-2xl border-2 border-stone-200 bg-stone-50 px-5 py-4 font-bold text-stone-900 placeholder:text-stone-400 focus:border-[#ef9d2a] focus:ring-[#ef9d2a] focus:bg-white outline-none transition-all";
@@ -94,6 +95,11 @@ export default function CatererSignupPage() {
         e.preventDefault();
 
         if (step === 1) {
+            const strength = getPasswordStrength(formData.password);
+            if (strength.score < 3) {
+                toast.error('Please provide a stronger password (min 8 chars, 1 number).');
+                return;
+            }
             setIsLoading(true);
             try {
                 const userData = {
