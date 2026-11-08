@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   CloudUpload,
   Check,
@@ -228,10 +228,11 @@ export default function GalleryManagementPage() {
   };
 
   // Simulated filtering
-  const filteredGallery =
+  const filteredGallery = useMemo(() =>
     activeTab === 'All Photos'
       ? MOCK_GALLERY
-      : MOCK_GALLERY.filter((img) => img.category === activeTab);
+      : MOCK_GALLERY.filter((img) => img.category === activeTab),
+  [activeTab]);
 
   return (
     <div className="w-full min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30 pb-32 animate-in fade-in duration-500">

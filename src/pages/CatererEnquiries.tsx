@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Search,
   Filter,
@@ -199,15 +199,15 @@ export default function CatererInboxPage() {
     dispatch(fetchCatererEnquiries());
   }, [dispatch]);
 
-  const newLeadsCount = enquiries.filter((l) => l.status === 'sent').length;
+  const newLeadsCount = useMemo(() => enquiries.filter((l) => l.status === 'sent').length, [enquiries]);
 
-  const filteredLeads = enquiries.filter(
+  const filteredLeads = useMemo(() => enquiries.filter(
     (enquiry) => {
       const user = typeof enquiry.user === 'object' ? enquiry.user as User : null;
       return (user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
               enquiry.eventType.toLowerCase().includes(searchQuery.toLowerCase()));
     }
-  );
+  ), [enquiries, searchQuery]);
 
   return (
     <div className="w-full animate-in fade-in duration-500">

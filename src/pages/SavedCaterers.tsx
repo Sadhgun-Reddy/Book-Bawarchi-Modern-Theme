@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Plus, Star, Heart, MapPin, Calendar, Users, X, MessageSquare, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -242,11 +242,11 @@ export default function SavedCaterersPage() {
     setTimeout(() => setToastMessage(''), 3000); // Auto hide after 3s
   };
 
-  const filteredList = savedList.filter(
+  const filteredList = useMemo(() => savedList.filter(
     (caterer) =>
       caterer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       caterer.cuisine.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ), [savedList, searchQuery]);
 
   return (
     <div className="w-full relative animate-in fade-in duration-500">
