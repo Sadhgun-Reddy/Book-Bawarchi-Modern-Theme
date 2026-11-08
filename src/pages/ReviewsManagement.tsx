@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Star,
   MessageSquare,
@@ -312,11 +312,11 @@ export default function ReviewsManagementPage() {
   };
 
   // Simulated filtering
-  const filteredReviews = reviews.filter((rev) => {
+  const filteredReviews = useMemo(() => reviews.filter((rev) => {
     if (activeTab === 'Unanswered') return !rev.reply;
     if (activeTab === 'Flagged') return false; // Mock empty state for flagged
     return true;
-  });
+  }), [reviews, activeTab]);
 
   return (
     <div className="w-full min-h-screen bg-[#fcfaf8] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ef9d2a]/30 pb-32 animate-in fade-in duration-500">

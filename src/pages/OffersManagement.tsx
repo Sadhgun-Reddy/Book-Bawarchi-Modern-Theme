@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Megaphone, TrendingUp, Edit2, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -192,12 +192,12 @@ export default function OffersManagementPage() {
 
   const tabs = ['All', 'Active', 'Pending'];
 
-  const filteredOffers = offers.filter((offer) => {
+  const filteredOffers = useMemo(() => offers.filter((offer) => {
     if (activeTab === 'All') return true;
     if (activeTab === 'Active') return offer.status === 'ACTIVE';
     if (activeTab === 'Pending') return offer.status === 'PENDING';
     return true;
-  });
+  }), [offers, activeTab]);
 
   const handleToggle = (id: string) => {
     setOffers(
