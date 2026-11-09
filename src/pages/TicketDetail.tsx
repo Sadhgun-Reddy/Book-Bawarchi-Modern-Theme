@@ -277,24 +277,25 @@ const ChatBubble: React.FC<{ message: Message }> = ({ message }) => {
 const ChatInputDock: React.FC = () => (
   <div className="mt-auto bg-white border border-slate-200 rounded-[2rem] overflow-hidden flex flex-col shadow-sm focus-within:ring-2 focus-within:ring-[#ef9d2a]/20 focus-within:border-[#ef9d2a] transition-all">
     {/* Toolbar */}
-    <div className="bg-slate-50 px-4 py-2 flex items-center gap-1 border-b border-slate-100">
-      <button className="p-2 text-slate-400 hover:text-stone-900 hover:bg-slate-200 rounded-lg transition-colors">
+    <div className="bg-slate-50 px-4 py-2 flex items-center gap-1 border-b border-slate-100" role="toolbar" aria-label="Formatting options">
+      <button aria-label="Bold text" title="Bold text" className="p-2 text-slate-400 hover:text-stone-900 hover:bg-slate-200 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ef9d2a]">
         <Bold className="w-4 h-4" />
       </button>
-      <button className="p-2 text-slate-400 hover:text-stone-900 hover:bg-slate-200 rounded-lg transition-colors">
+      <button aria-label="Italic text" title="Italic text" className="p-2 text-slate-400 hover:text-stone-900 hover:bg-slate-200 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ef9d2a]">
         <Italic className="w-4 h-4" />
       </button>
-      <div className="w-[1px] h-4 bg-slate-300 mx-1"></div>
-      <button className="p-2 text-slate-400 hover:text-stone-900 hover:bg-slate-200 rounded-lg transition-colors">
+      <div className="w-[1px] h-4 bg-slate-300 mx-1" role="separator" aria-orientation="vertical"></div>
+      <button aria-label="Insert link" title="Insert link" className="p-2 text-slate-400 hover:text-stone-900 hover:bg-slate-200 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ef9d2a]">
         <LinkIcon className="w-4 h-4" />
       </button>
-      <button className="p-2 text-slate-400 hover:text-stone-900 hover:bg-slate-200 rounded-lg transition-colors">
+      <button aria-label="Attach file" title="Attach file" className="p-2 text-slate-400 hover:text-stone-900 hover:bg-slate-200 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ef9d2a]">
         <Paperclip className="w-4 h-4" />
       </button>
     </div>
 
     {/* Textarea */}
     <textarea
+      aria-label="Reply message"
       className="w-full p-5 min-h-[120px] resize-none border-none outline-none text-sm font-medium text-stone-900 placeholder:text-slate-400 leading-relaxed"
       placeholder="Type your reply here..."
     ></textarea>
