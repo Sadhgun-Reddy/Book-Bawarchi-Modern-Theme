@@ -5,3 +5,6 @@
 ## 2024-11-07 - Unmemoized Filtering in Lists
 **Learning:** Found that several dashboard list components (like `MyEnquiries.tsx`) were performing array filtering (`Array.prototype.filter` with string manipulations like `.toLowerCase()`) and stats recalculation on every render instead of memoizing the results. When the `searchQuery` updates, it filters everything, but any other unrelated state update would also trigger these expensive calculations.
 **Action:** Always wrap array filter/map operations and derived list data in `useMemo` in React components, especially when rendering lists or maps of complex objects, to avoid O(N) recalculations on unrelated component renders.
+## 2024-03-22 - Wrap Map Iteration Callbacks in React.memo
+**Learning:** Found multiple instances where we mapped over lists but rendered unmemoized child components (like `CatererCard`, `RecipeCard`). Since the parent list container frequently re-renders on state changes (e.g. typing in search), these complex cards unnecessarily re-render, wasting CPU cycles and causing layout jank, especially given image loading and many elements.
+**Action:** Always wrap the exported card components that render map iterations in `React.memo` (e.g. `const CatererCard = React.memo(...)`) to prevent unnecessary component re-renders unless props change.

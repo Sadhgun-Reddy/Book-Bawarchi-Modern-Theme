@@ -170,7 +170,7 @@ const FilterSidebar: React.FC<{ onReset: () => void }> = ({ onReset }) => {
   );
 };
 
-const CatererCard: React.FC<{ caterer: UICaterer }> = ({ caterer }) => {
+const CatererCard = React.memo(({ caterer }: { caterer: UICaterer }) => {
   const navigate = useNavigate();
 
   return (
@@ -274,7 +274,7 @@ const CatererCard: React.FC<{ caterer: UICaterer }> = ({ caterer }) => {
       </div>
     </div>
   );
-};
+});
 
 // --- MAIN PAGE ---
 
