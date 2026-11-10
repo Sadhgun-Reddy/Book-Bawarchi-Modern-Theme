@@ -194,7 +194,7 @@ const ProblemSolution = () => (
   </section>
 );
 
-const CatererCard = ({ caterer }: any) => {
+const CatererCard = React.memo(({ caterer }: any) => {
   const navigate = useNavigate();
 
   return (
@@ -227,7 +227,7 @@ const CatererCard = ({ caterer }: any) => {
       </div>
     </div>
   );
-};
+});
 
 const FeaturedCaterers = () => {
   return (
@@ -330,7 +330,7 @@ const HowItWorks = () => {
   );
 };
 
-const RecipeCard = ({ recipe }: any) => {
+const RecipeCard = React.memo(({ recipe }: any) => {
   const navigate = useNavigate();
 
   return (
@@ -358,7 +358,7 @@ const RecipeCard = ({ recipe }: any) => {
       </div>
     </div>
   );
-};
+});
 
 const CommunityRecipes = () => (
   <section className="overflow-hidden bg-primary-light/40 py-24 border-y border-neutral-100">

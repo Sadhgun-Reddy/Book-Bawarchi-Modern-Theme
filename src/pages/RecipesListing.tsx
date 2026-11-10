@@ -39,7 +39,7 @@ const FilterBar = ({ activeCategory, setActiveCategory }: any) => {
   );
 };
 
-const RecipeCard = ({ recipe }: { recipe: Recipe }) => {
+const RecipeCard = React.memo(({ recipe }: { recipe: Recipe }) => {
   const navigate = useNavigate();
   const imageUrl = recipe.images && recipe.images.length > 0
     ? `http://localhost:5000/uploads/${recipe.images[0]}`
@@ -130,7 +130,7 @@ const RecipeCard = ({ recipe }: { recipe: Recipe }) => {
       </div>
     </article>
   );
-};
+});
 
 const RecipesListing = () => {
   const [activeCategory, setActiveCategory] = useState('All');
