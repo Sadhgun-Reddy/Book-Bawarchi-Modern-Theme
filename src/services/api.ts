@@ -4,7 +4,7 @@ import { Dish } from '../types';
 // Create an Axios instance with a base URL
 // Note: Do not hard-code Content-Type to allow FormData uploads (multipart)
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000', // Remove /api since Urls already have api/v1/
   // Headers are left to be inferred per-request by Axios/Browser
 });
 
