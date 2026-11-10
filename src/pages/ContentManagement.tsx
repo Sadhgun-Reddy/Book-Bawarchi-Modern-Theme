@@ -100,10 +100,18 @@ export default function ContentManagementPage() {
                           {post.title}
                         </h3>
                         <div className="flex gap-1 sm:gap-2 shrink-0">
-                          <button className="p-2 text-slate-400 hover:text-[#ef9d2a] hover:bg-[#ef9d2a]/5 rounded-full transition-all">
+                          <button
+                            className="p-2 text-slate-400 hover:text-[#ef9d2a] hover:bg-[#ef9d2a]/5 rounded-full transition-all"
+                            aria-label={`Edit ${post.title}`}
+                            title={`Edit ${post.title}`}
+                          >
                             <Edit2 className="w-5 h-5" />
                           </button>
-                          <button className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all">
+                          <button
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                            aria-label={`Delete ${post.title}`}
+                            title={`Delete ${post.title}`}
+                          >
                             <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
