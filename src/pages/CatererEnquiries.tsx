@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Search,
   Filter,
@@ -113,7 +113,8 @@ const InboxHeader = ({ newLeadsCount, searchQuery, setSearchQuery, isLoading }: 
   </div>
 );
 
-const LeadRow = ({ enquiry }: { enquiry: Enquiry }) => {
+// ⚡ Bolt: Wrap child component rendered within map iterations in React.memo to prevent unnecessary re-renders
+const LeadRow = React.memo(({ enquiry }: { enquiry: Enquiry }) => {
   const user = typeof enquiry.user === 'object' ? enquiry.user as User : null;
   const initials = user?.name?.split(' ').map(n => n.charAt(0)).join('').toUpperCase() || 'C';
   const eventDate = new Date(enquiry.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -186,7 +187,7 @@ const LeadRow = ({ enquiry }: { enquiry: Enquiry }) => {
       </div>
     </div>
   );
-};
+});
 
 // --- MAIN PAGE ---
 
@@ -199,15 +200,16 @@ export default function CatererInboxPage() {
     dispatch(fetchCatererEnquiries());
   }, [dispatch]);
 
-  const newLeadsCount = enquiries.filter((l) => l.status === 'sent').length;
+  // ⚡ Bolt: Memoize the derived arrays and counts to avoid O(N) recalculations on every render
+  const newLeadsCount = useMemo(() => enquiries.filter((l) => l.status === 'sent').length, [enquiries]);
 
-  const filteredLeads = enquiries.filter(
+  const filteredLeads = useMemo(() => enquiries.filter(
     (enquiry) => {
       const user = typeof enquiry.user === 'object' ? enquiry.user as User : null;
       return (user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
               enquiry.eventType.toLowerCase().includes(searchQuery.toLowerCase()));
     }
-  );
+  ), [enquiries, searchQuery]);
 
   return (
     <div className="w-full animate-in fade-in duration-500">
